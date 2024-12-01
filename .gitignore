@@ -1,0 +1,15 @@
+__pycache__
+*.mypy_cache
+.venv
+.vscode
+*.pyc
+.env
+results.txt
+*.sqlite3
+*.xml
+build
+*.egg-info
+
+.coverage
+./output
+dummy.*
