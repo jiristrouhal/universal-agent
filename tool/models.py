@@ -34,5 +34,13 @@ class TaskWithTests(pydantic.BaseModel):
     tests: str
 
 
+class TaskWithSolutionDraft(pydantic.BaseModel):
+    task: str
+    context: str
+    requirements: str
+    tests: str
+    solution_draft: str
+
+
 def task_with_empty_recall(task: TaskPlain) -> TaskWithSolutionRecall:
     return TaskWithSolutionRecall(task=task.task, context=task.context, solution_recall="")

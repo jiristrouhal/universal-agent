@@ -35,7 +35,3 @@ def get_tests(task_to_solve: TaskToSolve) -> TaskWithTests:
         requirements=task_to_solve.requirements,
         tests=str(result.content),
     )
-
-
-def print_tests(task: TaskWithTests) -> State:
-    return State(messages=[SystemMessage(content=str(task.model_dump_json(indent=4)))])

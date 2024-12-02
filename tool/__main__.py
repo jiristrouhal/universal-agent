@@ -9,7 +9,8 @@ from tool.models import State, task_with_empty_recall
 from tool.task_extractor import parse_task
 from tool.recaller import recall, recalled_or_new
 from tool.solver.requirements import get_requirements
-from tool.solver.tests import get_tests, print_tests
+from tool.solver.tests import get_tests
+from tool.solver.solution import propose_solution, print_solution_draft
 
 
 dotenv.load_dotenv()
@@ -21,7 +22,8 @@ builder.add_node("init_solution_recall", task_with_empty_recall)
 builder.add_node("recall_solutions", recall)
 builder.add_node("get_requirements", get_requirements)
 builder.add_node("get_tests", get_tests)
-builder.add_node("print_tests", print_tests)
+builder.add_node("propose_solution", propose_solution)
+builder.add_node("print_solution_draft", print_solution_draft)
 
 builder.add_edge(START, "parse_task")
 builder.add_edge("parse_task", "init_solution_recall")
@@ -30,8 +32,9 @@ builder.add_conditional_edges(
     "recall_solutions", recalled_or_new, {"new": "get_requirements", "recalled": END}
 )
 builder.add_edge("get_requirements", "get_tests")
-builder.add_edge("get_tests", "print_tests")
-builder.add_edge("print_tests", END)
+builder.add_edge("get_tests", "propose_solution")
+builder.add_edge("propose_solution", "print_solution_draft")
+builder.add_edge("print_solution_draft", END)
 graph = builder.compile()
 
 
