@@ -10,6 +10,22 @@ class State(TypedDict):
     messages: Annotated[list[AnyMessage], add]
 
 
-class Task(pydantic.BaseModel):
+class TaskPlain(pydantic.BaseModel):
     task: str
     context: str
+
+
+class TaskWithSolutionRecall(pydantic.BaseModel):
+    task: str
+    context: str
+    solution_recall: str
+
+
+class TaskToSolve(pydantic.BaseModel):
+    task: str
+    context: str
+    requirements: str
+
+
+def task_with_empty_recall(task: TaskPlain) -> TaskWithSolutionRecall:
+    return TaskWithSolutionRecall(task=task.task, context=task.context, solution_recall="")
