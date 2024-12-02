@@ -27,5 +27,12 @@ class TaskToSolve(pydantic.BaseModel):
     requirements: str
 
 
+class TaskWithTests(pydantic.BaseModel):
+    task: str
+    context: str
+    requirements: str
+    tests: str
+
+
 def task_with_empty_recall(task: TaskPlain) -> TaskWithSolutionRecall:
     return TaskWithSolutionRecall(task=task.task, context=task.context, solution_recall="")

@@ -1,7 +1,7 @@
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from models import TaskToSolve, TaskWithSolutionRecall, State
+from tool.models import TaskToSolve, TaskWithSolutionRecall, State
 
 
 SOLUTION_REQUIREMENT_PROMPT = """
@@ -29,7 +29,3 @@ def get_requirements(task_with_recall: TaskWithSolutionRecall) -> TaskToSolve:
     return TaskToSolve(
         task=task_with_recall.task, context=task_with_recall.context, requirements=result.content
     )
-
-
-def print_requirements(task: TaskToSolve) -> State:
-    return State(messages=[SystemMessage(content=task.requirements)])

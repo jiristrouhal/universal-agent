@@ -8,7 +8,8 @@ from langchain_core.messages import HumanMessage
 from tool.models import State, task_with_empty_recall
 from tool.task_extractor import parse_task
 from tool.recaller import recall, recalled_or_new
-from tool.requirements import get_requirements, print_requirements
+from tool.solver.requirements import get_requirements
+from tool.solver.tests import get_tests, print_tests
 
 
 dotenv.load_dotenv()
@@ -19,7 +20,8 @@ builder.add_node("parse_task", parse_task)
 builder.add_node("init_solution_recall", task_with_empty_recall)
 builder.add_node("recall_solutions", recall)
 builder.add_node("get_requirements", get_requirements)
-builder.add_node("print_requirements", print_requirements)
+builder.add_node("get_tests", get_tests)
+builder.add_node("print_tests", print_tests)
 
 builder.add_edge(START, "parse_task")
 builder.add_edge("parse_task", "init_solution_recall")
@@ -27,8 +29,9 @@ builder.add_edge("init_solution_recall", "recall_solutions")
 builder.add_conditional_edges(
     "recall_solutions", recalled_or_new, {"new": "get_requirements", "recalled": END}
 )
-builder.add_edge("get_requirements", "print_requirements")
-builder.add_edge("print_requirements", END)
+builder.add_edge("get_requirements", "get_tests")
+builder.add_edge("get_tests", "print_tests")
+builder.add_edge("print_tests", END)
 graph = builder.compile()
 
 
