@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
@@ -16,12 +14,10 @@ Context: ...
 Requirements: ...
 Tests: ...
 
-Think step by step about the solution structure and write it down. Identify all necessary resources (functions, information etc.). Do not mention anything else.
+Think step by step about the solution structure and write it down.
 Please, respond in the following format:
 
 Step-by-step structure of the solution:
-...
-Required sources:
 ...
 """
 
@@ -44,10 +40,4 @@ def propose_solution(task_with_tests: TaskWithTests) -> TaskWithSolutionDraft:
         requirements=task_with_tests.requirements,
         tests=task_with_tests.tests,
         solution_draft=str(result.content),
-    )
-
-
-def print_solution_draft(task_with_solution_draft: TaskWithSolutionDraft) -> State:
-    return State(
-        messages=[HumanMessage(content=str(task_with_solution_draft.model_dump_json(indent=4)))]
     )

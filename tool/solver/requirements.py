@@ -1,3 +1,5 @@
+import json
+
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
@@ -11,10 +13,8 @@ I will give you the following information:
 Task: ...
 Context: ...
 
-You will responds with the list of requirements that the solution must meet.
-1. Requirement 1
-2. Requirement 2
-...
+You will responds with the pythonic list of requirements that the solution must meet:
+["requirement1", "requirement2", ...]
 
 Do not write anything else.
 """
@@ -27,5 +27,7 @@ def get_requirements(task_with_recall: TaskWithSolutionRecall) -> TaskToSolve:
     messages = [SystemMessage(content=SOLUTION_REQUIREMENT_PROMPT), HumanMessage(content=task_str)]
     result = _model.invoke(messages)
     return TaskToSolve(
-        task=task_with_recall.task, context=task_with_recall.context, requirements=result.content
+        task=task_with_recall.task,
+        context=task_with_recall.context,
+        requirements=list(json.loads(str(result.content))),
     )

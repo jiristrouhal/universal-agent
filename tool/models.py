@@ -24,22 +24,31 @@ class TaskWithSolutionRecall(pydantic.BaseModel):
 class TaskToSolve(pydantic.BaseModel):
     task: str
     context: str
-    requirements: str
+    requirements: list[str]
 
 
 class TaskWithTests(pydantic.BaseModel):
     task: str
     context: str
-    requirements: str
+    requirements: list[str]
     tests: str
 
 
 class TaskWithSolutionDraft(pydantic.BaseModel):
     task: str
     context: str
-    requirements: str
+    requirements: list[str]
     tests: str
     solution_draft: str
+
+
+class TaskWithSourceAugmentedDraft(pydantic.BaseModel):
+    task: str
+    context: str
+    requirements: list[str]
+    tests: str
+    solution_draft: str
+    sources: dict[str, str]
 
 
 def task_with_empty_recall(task: TaskPlain) -> TaskWithSolutionRecall:

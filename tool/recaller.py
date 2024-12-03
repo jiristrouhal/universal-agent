@@ -20,8 +20,8 @@ Recalled solutions:\n{solutions}
 
 Your answer must be in the following format:
 
-Reasoning: Here you think step by step about each of the solutions with respect to the task and context.
-Best solution: Here you choose the best solution. Do not write anything else.
+Reasoning: Here you think step by step about Recalled solutions with respect to the task and context.
+Best solution: Here you choose the best solution. Do not write anything else. It is possible none of the solutions are relevant.
 """
 
 

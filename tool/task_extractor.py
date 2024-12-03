@@ -6,6 +6,7 @@ from tool.models import TaskPlain, State
 
 
 model = ChatOpenAI(name="gpt-4o-mini")
+
 task_extractor = create_extractor(model, tools=[TaskPlain], tool_choice="TaskPlain")
 TASK_EXTRACTOR_PROMPT = "Extract a task with context from the following messages."
 
