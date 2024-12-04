@@ -9,5 +9,5 @@ I have set up the solution proposal. Now I need to implement the solution storag
 That's why I will use a vector database.
 
 There will actually be two databases:
-- Solution database. This contains solutions related to specific tasks in given context.
-- Source database. This contains information retrieved during solving various tasks. Each source is related to a context and question/query.
+- Solution database. This contains solutions related to specific tasks in given context. Solutions here are supposed to be editable. It kind of corresponds to a procedural memory.
+- Source database. This contains information retrieved (**learned**) during solving various tasks. Each source is related to a context and question/query. Sources are not editable, but summarizations can be created. This database corresponds to a semantic memory.
