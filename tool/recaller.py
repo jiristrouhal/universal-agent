@@ -24,6 +24,19 @@ Best solution: Here you choose the best solution. Do not write anything else. It
 """
 
 
+SOLUTION_OK_PROMPT = """
+You are a helpful assistant that determines if the solution provided is acceptable.
+
+I will provide to you the following information:
+
+Task: ...
+Context: ...
+Solution recall: ...
+
+You will respond with 'True' if the solution is nonempty and evaluated as valid, 'False' otherwise. Do not write anything else.
+"""
+
+
 _db = SolutionDB()
 _model = ChatOpenAI(model="gpt-4o-mini")
 
@@ -48,19 +61,6 @@ def _assess_solutions(task: str, context: str, solutions: str) -> str:
     messages = [SystemMessage(content=formatted_system_prompt)]
     result = str(_model.invoke(messages).content)
     return result
-
-
-SOLUTION_OK_PROMPT = """
-You are a helpful assistant that determines if the solution provided is acceptable.
-
-I will provide to you the following information:
-
-Task: ...
-Context: ...
-Solution recall: ...
-
-You will respond with 'True' if the solution is nonempty and evaluated as valid, 'False' otherwise. Do not write anything else.
-"""
 
 
 def recalled_or_new(
