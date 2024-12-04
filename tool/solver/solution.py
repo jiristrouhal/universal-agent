@@ -18,6 +18,7 @@ Please, follow these guidelines:
 2) Use only the provided Resources for building the solution. Do not make any assumptions or ad-hoc information retrievals.
 3) All points from the Solution structure must be addressed in the solution.
 4) The solution must pass all the Tests.
+5) Write only the solution, helper functions and imports. Do not write any additional code.
 
 You should respond to me only with the solution. Do not write anything else.
 """
@@ -26,6 +27,7 @@ _model = ChatOpenAI(model="gpt-4o-mini")
 
 
 def propose_solution(draft: TaskWithSourceAugmentedDraft) -> TaskWithSolution:
+    """Propose a solution to the task and store it in the solution database."""
     query = (
         f"Context: {draft.context}\n"
         f"Task: {draft.task}\n"

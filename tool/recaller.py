@@ -42,8 +42,7 @@ _model = ChatOpenAI(model="gpt-4o-mini")
 
 
 def recall(task: TaskWithSolutionRecall) -> TaskWithSolutionRecall:
-    task_str = f"Task is to {task.task} in the context of {task.context}."
-    solutions = [content for content, _ in _db.search(task_str, k=3)]
+    solutions = [content for content, _ in _db.get_solutions(task.context, task.task, k=3)]
     for k in range(len(solutions)):
         solutions[k] = f"{k + 1}. {solutions[k][0]}"
     solutions_str = "\n\t".join(solutions)

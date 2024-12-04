@@ -1,37 +1,56 @@
-from typing import Any
+from __future__ import annotations
+import uuid
+import json
 
+import pydantic
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
 
+class Solution(pydantic.BaseModel):
+    """This class represents a solution to a specific task in a specific context. It is used to store the solution in the database
+    with the data necessary for the solution modifications and verification, including tests, source links and the solution structure.
+    """
+
+    context: str
+    task: str
+    solution_structure: list[str]
+    source_links: str
+    tests: list[Test]
+    solution: str
+    id: str = str(uuid.uuid4())
+
+    @property
+    def task_description(self) -> str:
+        return f"Context: {self.context}\nTask: {self.task}"
+
+
+class Test(pydantic.BaseModel):
+    """This class represents a test case for a solution."""
+
+    test: str
+    critique_of_last_run: str
+
+
 class SolutionDB:
 
-    COLLECTION_NAME = "tool_memories"
-
-    def __init__(self, db_path: str = "") -> None:
-        if bool(db_path):
-            db_dir_path = str(db_path)
-        else:
-            db_dir_path = None
+    def __init__(self) -> None:
         self._db = Chroma(
-            collection_name=self.COLLECTION_NAME,
-            embedding_function=OpenAIEmbeddings(),  # type: ignore
-            persist_directory=db_dir_path if db_dir_path else None,
+            collection_name="solution",
+            embedding_function=OpenAIEmbeddings(model="text-embedding-3-small"),
         )
 
-    def count(self):
-        return self._db._collection.count()
+    def add_solution(self, solution: Solution) -> Solution:
+        id = self._db.add_texts(
+            texts=[solution.task_description],
+            metadatas=[{"json": solution.model_dump_json(indent=4)}],
+        )[0]
+        solution.id = id
+        return solution
 
-    def delete(self, action_name: str) -> None:
-        self._db.delete([action_name])
-
-    def insert(self, description: str, content: Any) -> None:
-        self._db.add_texts(
-            texts=[description],
-            ids=[content],
-            metadatas=[{"content": content}],
-        )
-
-    def search(self, query: str, k: int = 1) -> list[tuple[str, float]]:
-        vectordb_records = self._db.similarity_search_with_score(query, k=k)
-        return [(doc.metadata["name"], score) for doc, score in vectordb_records]
+    def get_solutions(self, context: str, task: str, k: int = 3) -> list[Solution]:
+        query = f"Context: {context}\nTask: {task}"
+        return [
+            Solution(**json.loads(d.metadata["json"]))
+            for d in self._db.similarity_search(query, k=1)
+        ]
