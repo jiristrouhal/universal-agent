@@ -1,7 +1,7 @@
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from tool.models import TaskToSolve, TaskWithTests, State
+from tool.models import TaskToSolve, TaskWithTests
 
 
 SOLUTION_REQUIREMENT_PROMPT = """
