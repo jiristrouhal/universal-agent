@@ -1,10 +1,9 @@
 from typing import Literal
 
 from langchain_core.messages import SystemMessage, HumanMessage
-from langgraph.graph import START, END
 from langchain_openai import ChatOpenAI
 
-from tool.models import TaskPlain, TaskWithSolutionRecall
+from tool.models import TaskWithSolutionRecall
 from tool.solution_db import SolutionDB
 
 

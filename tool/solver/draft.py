@@ -25,7 +25,7 @@ Step-by-step structure of the solution:
 _model = ChatOpenAI(model="gpt-4o-mini")
 
 
-def propose_solution(task_with_tests: TaskWithTests) -> TaskWithSolutionDraft:
+def get_solution_structure(task_with_tests: TaskWithTests) -> TaskWithSolutionDraft:
     task_str = (
         f"Task: {task_with_tests.task}\n"
         f"Context: {task_with_tests.context}\n"

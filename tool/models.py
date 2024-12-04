@@ -51,5 +51,12 @@ class TaskWithSourceAugmentedDraft(pydantic.BaseModel):
     sources: dict[str, str]
 
 
+class TaskWithSolution(pydantic.BaseModel):
+    task: str
+    context: str
+    tests: str
+    solution: str
+
+
 def task_with_empty_recall(task: TaskPlain) -> TaskWithSolutionRecall:
     return TaskWithSolutionRecall(task=task.task, context=task.context, solution_recall="")

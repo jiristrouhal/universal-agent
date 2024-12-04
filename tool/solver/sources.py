@@ -4,6 +4,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt.chat_agent_executor import create_react_agent
 from langchain_community.tools.wikipedia.tool import WikipediaQueryRun, WikipediaAPIWrapper
+from langchain_community.tools.google_search.tool import GoogleSearchAPIWrapper, GoogleSearchRun
 from tool.models import TaskWithSourceAugmentedDraft, TaskWithSolutionDraft, State
 
 
@@ -34,14 +35,11 @@ Do not write anything else.
 _GET_RESOURCE_PROMPT = """
 You are a helpful assistant, that helps me to find answer or solution to a question or request.
 
-Please, provide me with the requested information or resource.
-
 I will give you the following information:
 
-Context: ...
-Request: ...
-
-
+Task: This is the task, which solution requires the information I am asking for.
+Context: This is the context of the task.
+Request: This is the request for the specific information or resource I need.
 """
 
 
@@ -60,7 +58,8 @@ def collect_sources(draft: TaskWithSolutionDraft) -> TaskWithSourceAugmentedDraf
     requests_for_sources: list[str] = list(json.loads(str(_model.invoke(messages).content)))
     requested_sources = dict.fromkeys(requests_for_sources, "Not provided")
     for request in requested_sources:
-        messages = [SystemMessage(content=_GET_RESOURCE_PROMPT), HumanMessage(content=request)]
+        full_request = f"Task: {draft.task}\n" f"Context: {draft.context}\n" f"Request: {request}"
+        messages = [SystemMessage(content=_GET_RESOURCE_PROMPT), HumanMessage(content=full_request)]
         result = _resource_provider.invoke({"messages": messages})
         requested_sources[request] = str(result)
     return TaskWithSourceAugmentedDraft(
