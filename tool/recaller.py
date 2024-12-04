@@ -4,7 +4,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
 from tool.models import TaskWithSolutionRecall
-from tool.solution_db import SolutionDB
+from tool.memory.solution_db import SolutionDB
 
 
 SOLUTION_JUDGE_PROMPT = """
