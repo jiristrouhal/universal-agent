@@ -5,7 +5,6 @@ __pycache__
 *.pyc
 .env
 results.txt
-*.sqlite3
 *.xml
 build
 *.egg-info
@@ -13,3 +12,4 @@ build
 .coverage
 ./output
 dummy.*
+data

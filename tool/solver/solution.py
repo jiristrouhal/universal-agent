@@ -1,7 +1,8 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-from tool.models import TaskWithSourceAugmentedDraft, TaskWithSolution, State
+from tool.models import TaskWithSources, State
+from tool.memory.solution_db import Solution, Test, database
 
 
 _PROPOSE_SOLUTION_PROMPT = """
@@ -26,20 +27,28 @@ You should respond to me only with the solution. Do not write anything else.
 _model = ChatOpenAI(model="gpt-4o-mini")
 
 
-def propose_solution(draft: TaskWithSourceAugmentedDraft) -> TaskWithSolution:
+def propose_solution(draft: TaskWithSources) -> Solution:
     """Propose a solution to the task and store it in the solution database."""
     query = (
         f"Context: {draft.context}\n"
         f"Task: {draft.task}\n"
         f"Tests: {draft.tests}\n"
-        f"Solution structure: {draft.solution_draft}"
+        f"Solution structure: {draft.solution_structure}"
     )
     messages = [SystemMessage(content=_PROPOSE_SOLUTION_PROMPT), HumanMessage(content=query)]
     solution = str(_model.invoke(messages).content)
-    return TaskWithSolution(
-        task=draft.task, context=draft.context, tests=draft.tests, solution=solution
+    solution_obj = Solution(
+        task=draft.task,
+        context=draft.context,
+        requirements=draft.requirements,
+        sources=draft.sources,
+        solution_structure=draft.solution_structure,
+        tests=[Test(test=t, critique_of_last_run="") for t in draft.tests],
+        solution=solution,
     )
+    database.add_solution(solution_obj)
+    return solution_obj
 
 
-def print_solution(solution: TaskWithSolution) -> State:
-    return State(messages=[AIMessage(content=solution.solution)])
+def print_solution(solution: Solution) -> State:
+    return State(messages=[AIMessage(content=solution.model_dump_json(indent=4))])

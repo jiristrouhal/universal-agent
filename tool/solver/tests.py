@@ -1,3 +1,5 @@
+import json
+
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
@@ -19,7 +21,11 @@ Please, follow these guidelines when writing the tests:
     3) Each test must be independent from the others.
     4) Each test must be deterministic.
 
-Please, respond only with the tests formatted as a plain text, one after another. Do not write anything else.
+Please, respond with the descriptions of the tests (what is tested, inputs and expected results if applicable) formatted as list with items formatter as a plain text, one after another. The list must contain at least one test:
+["Test 1", "Test 2", "Test 3", ...]
+
+
+Do not write anything else.
 """
 
 _model = ChatOpenAI(model="gpt-4o-mini")
@@ -33,5 +39,5 @@ def get_tests(task_to_solve: TaskToSolve) -> TaskWithTests:
         task=task_to_solve.task,
         context=task_to_solve.context,
         requirements=task_to_solve.requirements,
-        tests=str(result.content),
+        tests=list(json.loads(str(result.content))),
     )

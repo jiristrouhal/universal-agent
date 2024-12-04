@@ -1,7 +1,9 @@
+import json
+
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from tool.models import TaskWithTests, TaskWithSolutionDraft
+from tool.models import TaskWithTests, TaskWithSolutionStructure
 
 
 SOLUTION_PROMPT = """
@@ -14,18 +16,19 @@ Context: ...
 Requirements: ...
 Tests: ...
 
-Think step by step about the solution structure and write it down.
-Please, respond in the following format:
+Write down step by step the solution structure. This includes the solution to the problem itself, not including tests, sources or reasoning.
 
-Step-by-step structure of the solution:
-...
+Please, respond only with the parts of the solution structure each formatted as a plain text, one after another, forming a list:
+["Part 1", "Part 2", "Part 3", ...]
+
+Do not write anything else.
 """
 
 
 _model = ChatOpenAI(model="gpt-4o-mini")
 
 
-def get_solution_structure(task_with_tests: TaskWithTests) -> TaskWithSolutionDraft:
+def get_solution_structure(task_with_tests: TaskWithTests) -> TaskWithSolutionStructure:
     task_str = (
         f"Task: {task_with_tests.task}\n"
         f"Context: {task_with_tests.context}\n"
@@ -34,10 +37,10 @@ def get_solution_structure(task_with_tests: TaskWithTests) -> TaskWithSolutionDr
     )
     messages = [SystemMessage(content=SOLUTION_PROMPT), HumanMessage(content=task_str)]
     result = _model.invoke(messages)
-    return TaskWithSolutionDraft(
+    return TaskWithSolutionStructure(
         task=task_with_tests.task,
         context=task_with_tests.context,
         requirements=task_with_tests.requirements,
         tests=task_with_tests.tests,
-        solution_draft=str(result.content),
+        solution_structure=list(json.loads(str(result.content))),
     )

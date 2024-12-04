@@ -4,7 +4,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
 from tool.models import TaskWithSolutionRecall
-from tool.memory.solution_db import SolutionDB
+from tool.memory.solution_db import database, Solution
 
 
 SOLUTION_JUDGE_PROMPT = """
@@ -37,20 +37,28 @@ You will respond with 'True' if the solution is nonempty and evaluated as valid,
 """
 
 
-_db = SolutionDB()
 _model = ChatOpenAI(model="gpt-4o-mini")
 
 
 def recall(task: TaskWithSolutionRecall) -> TaskWithSolutionRecall:
-    solutions = [content for content, _ in _db.get_solutions(task.context, task.task, k=3)]
-    for k in range(len(solutions)):
-        solutions[k] = f"{k + 1}. {solutions[k][0]}"
-    solutions_str = "\n\t".join(solutions)
+    recalled_solutions = database.get_solutions(task.context, task.task, k=3)
+    solutions_str = ""
+    for k in range(len(recalled_solutions)):
+        solutions_str += f"Solution {k}:\n" + _recalled_solution_description(recalled_solutions[k])
+        if k < len(recalled_solutions) - 1:
+            solutions_str += "\n\n"
     result = _assess_solutions(task.task, task.context, solutions_str)
     task_with_solution_recall = TaskWithSolutionRecall(
         task=task.task, context=task.context, solution_recall=result
     )
     return task_with_solution_recall
+
+
+def _recalled_solution_description(solution: Solution) -> str:
+    tests_str = "\n\t".join(
+        [f"{test.test}\n\t{test.critique_of_last_run}" for test in solution.tests]
+    )
+    return f"Task: {solution.task}\nContext: {solution.context}\nSolution:\n{solution.solution}\n"
 
 
 def _assess_solutions(task: str, context: str, solutions: str) -> str:

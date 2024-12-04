@@ -14,8 +14,9 @@ class Solution(pydantic.BaseModel):
 
     context: str
     task: str
+    requirements: list[str]
     solution_structure: list[str]
-    source_links: str
+    sources: dict[str, str]
     tests: list[Test]
     solution: str
     id: str = str(uuid.uuid4())
@@ -32,12 +33,13 @@ class Test(pydantic.BaseModel):
     critique_of_last_run: str
 
 
-class SolutionDB:
+class _SolutionDB:
 
     def __init__(self) -> None:
         self._db = Chroma(
             collection_name="solution",
             embedding_function=OpenAIEmbeddings(model="text-embedding-3-small"),
+            persist_directory="./data",
         )
 
     def add_solution(self, solution: Solution) -> Solution:
@@ -52,5 +54,8 @@ class SolutionDB:
         query = f"Context: {context}\nTask: {task}"
         return [
             Solution(**json.loads(d.metadata["json"]))
-            for d in self._db.similarity_search(query, k=1)
+            for d in self._db.similarity_search(query, k=k)
         ]
+
+
+database = _SolutionDB()

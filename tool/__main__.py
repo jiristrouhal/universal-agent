@@ -10,7 +10,7 @@ from tool.task_extractor import parse_task
 from tool.recaller import recall, recalled_or_new
 from tool.solver.requirements import get_requirements
 from tool.solver.tests import get_tests
-from tool.solver.draft import get_solution_structure
+from tool.solver.structure import get_solution_structure
 from tool.solver.sources import collect_sources
 from tool.solver.solution import propose_solution, print_solution
 
@@ -56,7 +56,6 @@ result = graph.invoke(
     {
         "messages": [
             HumanMessage(
-                # content="Can you please help me with with planning on how to build a house? I am a beginner in construction I want to build a house for my family."
                 content="""
                     Can you write for me a function that determines temperature distribution in a rod constantly heated on one side and cooled on the other?
                     There are no heat losses or sources along the rod. Consider the rod one-dimensional. I assume some constant initial temperature along the rod.

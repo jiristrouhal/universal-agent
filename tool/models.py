@@ -31,31 +31,24 @@ class TaskWithTests(pydantic.BaseModel):
     task: str
     context: str
     requirements: list[str]
-    tests: str
+    tests: list[str]
 
 
-class TaskWithSolutionDraft(pydantic.BaseModel):
+class TaskWithSolutionStructure(pydantic.BaseModel):
     task: str
     context: str
     requirements: list[str]
-    tests: str
-    solution_draft: str
+    tests: list[str]
+    solution_structure: list[str]
 
 
-class TaskWithSourceAugmentedDraft(pydantic.BaseModel):
+class TaskWithSources(pydantic.BaseModel):
     task: str
     context: str
     requirements: list[str]
-    tests: str
-    solution_draft: str
+    tests: list[str]
+    solution_structure: list[str]
     sources: dict[str, str]
-
-
-class TaskWithSolution(pydantic.BaseModel):
-    task: str
-    context: str
-    tests: str
-    solution: str
 
 
 def task_with_empty_recall(task: TaskPlain) -> TaskWithSolutionRecall:
