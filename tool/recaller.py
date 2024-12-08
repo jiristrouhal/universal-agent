@@ -55,9 +55,6 @@ def recall(task: TaskWithSolutionRecall) -> TaskWithSolutionRecall:
 
 
 def _recalled_solution_description(solution: Solution) -> str:
-    tests_str = "\n\t".join(
-        [f"{test.test}\n\t{test.critique_of_last_run}" for test in solution.tests]
-    )
     return f"Task: {solution.task}\nContext: {solution.context}\nSolution:\n{solution.solution}\n"
 
 
