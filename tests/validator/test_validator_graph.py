@@ -5,29 +5,43 @@ from tool.models import Solution, Test
 from tool.validator.validator_graph import validator_builder
 
 
-TEST_SOLUTION = Solution(
+TEST_SOLUTION_TEXT = Solution(
     context="",
     task="",
     requirements=[],
     solution_structure=[],
     sources={},
+    form="text",
     solution="The highest point of the Czech Republic is the peak of Snezka, which is 1602 meters above sea level.",
     tests=[
-        Test(description="The solution contains a sentence about the Czech Republic.", form="text"),
-        Test(description="The solution contains a sentence about Snezka.", form="text"),
-        Test(
-            description="Does the solution contain anything related to an  weather extremes in Czech Republic?",
-            form="text",
-        ),
+        Test(description="The solution contains a sentence about the Czech Republic."),
+        Test(description="The solution contains a sentence about Snezka."),
+        Test(description="Does the solution contain anything about weather in Czech Republic?"),
+    ],
+)
+
+
+TEST_SOLUTION_CODE = Solution(
+    context="",
+    task="",
+    requirements=[],
+    solution_structure=[],
+    sources={},
+    form="code",
+    solution="def add_one(x: float) -> float:\n    return x + 1",
+    tests=[
+        Test(description="The result for input 5 should be 6."),
+        Test(description="The result for input 10 should be 11."),
+        Test(description="The result for input -15 should be -14."),
     ],
 )
 
 
 def test_text_validator():
     graph = validator_builder.compile()
-    with open("misc/graph.png", "wb") as f:
-        f.write(Image(graph.get_graph().draw_mermaid_png()).data)
-    result = graph.invoke(TEST_SOLUTION.model_dump())
+    with open("misc/validator_graph.png", "wb") as f:
+        f.write(Image(graph.get_graph(xray=True).draw_mermaid_png()).data)
+    result = graph.invoke(TEST_SOLUTION_CODE.model_dump())
     pprint(result)
 
 

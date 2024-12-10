@@ -63,6 +63,7 @@ class Solution(pydantic.BaseModel):
     solution_structure: list[str]
     sources: dict[str, str]
     tests: list[Test]
+    form: Literal["text", "code"] = "text"
     solution: str
     id: str = str(uuid4())
 
@@ -75,7 +76,6 @@ class Test(pydantic.BaseModel):
     """This class represents a test case for a solution."""
 
     description: str
-    form: Literal["text", "code"] = "text"
     implementation: str = ""
     last_output: str = ""
     critique_of_last_run: str = ""
@@ -90,6 +90,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
     solution_structure: list[str]
     tests_to_run: dict[int, Test]
     run_tests: dict[int, Test]
+    form: Literal["text", "code"] = "text"
     solution: str
 
     @staticmethod
@@ -108,6 +109,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
             solution_structure=solution.solution_structure,
             tests_to_run=tests_to_run,
             run_tests=run_tests,
+            form=solution.form,
             solution=solution.solution,
         )
 
@@ -123,6 +125,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
             sources=solution_with_next_test.sources,
             solution_structure=solution_with_next_test.solution_structure,
             tests=tests,
+            form=solution_with_next_test.form,
             solution=solution_with_next_test.solution,
         )
 
