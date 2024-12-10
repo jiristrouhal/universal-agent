@@ -43,7 +43,7 @@ def propose_solution(draft: TaskWithSources) -> Solution:
         requirements=draft.requirements,
         sources=draft.sources,
         solution_structure=draft.solution_structure,
-        tests=[Test(test=t, critique_of_last_run="") for t in draft.tests],
+        tests=[Test(description=t, critique_of_last_run="") for t in draft.tests],
         solution=solution,
     )
     database.add_solution(solution_obj)

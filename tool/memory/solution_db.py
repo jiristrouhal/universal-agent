@@ -29,8 +29,9 @@ class Solution(pydantic.BaseModel):
 class Test(pydantic.BaseModel):
     """This class represents a test case for a solution."""
 
-    test: str
-    critique_of_last_run: str
+    description: str
+    implementation: str = ""
+    critique_of_last_run: str = ""
 
 
 class _SolutionDB:
