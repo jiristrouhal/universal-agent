@@ -1,10 +1,10 @@
 from __future__ import annotations
-from typing import Literal, Optional
+from typing import Literal
 
 import dotenv
 import pydantic
 from langgraph.graph import StateGraph, START, END
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
 from tool.solver.solution import Solution, Test
@@ -85,6 +85,25 @@ Write only the answers. Do not write anything else.
 """
 
 
+CRITIC_PROMPT = """
+You are a critic, that helps me to improve the solution. I will always provide you with a following information:
+
+Solution: ...
+Test description: ...
+Test implementation: ...
+Test result: ...
+
+Please, provide me with a critique of the solution. The critique should contain
+- any error that occured, if applicable,
+- place in the solution, where the error is,
+- a single-sentence suggestion, how to fix the error.
+
+If all the answers received positive responses, write also "TEST_PASSED".
+
+Do not write anything else.
+"""
+
+
 TEXT_TESTER_END = "__text_tester_end__"
 
 
@@ -96,7 +115,6 @@ def prepare_solution_with_tests_to_run(solution: Solution) -> SolutionWithTestsT
 
 
 def pick_test(solution_with_next_test: SolutionWithTestsToRun) -> SolutionWithTestsToRun:
-    print(solution_with_next_test.tests_to_run)
     return solution_with_next_test
 
 
@@ -140,9 +158,26 @@ def run_test(solution_with_next_test: SolutionWithTestsToRun) -> SolutionWithTes
         solution=solution_with_next_test.solution, questions=test.implementation
     )
     response = _model.invoke([SystemMessage(content=prompt)])
-    test.last_result = str(response.content)
+    test.last_output = str(response.content)
     solution_with_next_test.run_tests[test_id] = test
     return solution_with_next_test
+
+
+def criticize(solution: Solution) -> Solution:
+    for test in solution.tests:
+        query = (
+            f"Solution: {solution.solution}\nTest description: {test.description}\n"
+            f"Test implementation: {test.implementation}\nTest result: {test.last_output}"
+        )
+        response = _model.invoke(
+            [SystemMessage(content=CRITIC_PROMPT), HumanMessage(content=query)]
+        )
+        test.critique_of_last_run = str(response.content)
+        if "TEST_PASSED" in response.content:
+            test.result = "pass"
+        else:
+            test.result = "fail"
+    return solution
 
 
 text_validator_builder = StateGraph(Solution)
@@ -156,6 +191,7 @@ text_validator_builder.add_node("run_test", run_test)
 text_validator_builder.add_node(
     "return_solution_with_updated_tests", return_solution_with_updated_tests
 )
+text_validator_builder.add_node("critic", criticize)
 
 text_validator_builder.add_edge(START, "prepare_solution_with_no_test_to_run_next")
 text_validator_builder.add_edge("prepare_solution_with_no_test_to_run_next", "pick_test")
@@ -169,4 +205,5 @@ text_validator_builder.add_conditional_edges(
 )
 text_validator_builder.add_edge("implement_next_test", "run_test")
 text_validator_builder.add_edge("run_test", "pick_test")
-text_validator_builder.add_edge("return_solution_with_updated_tests", END)
+text_validator_builder.add_edge("return_solution_with_updated_tests", "critic")
+text_validator_builder.add_edge("critic", END)

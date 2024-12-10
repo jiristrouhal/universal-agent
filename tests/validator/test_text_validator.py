@@ -15,6 +15,10 @@ TEST_SOLUTION = Solution(
     tests=[
         Test(description="The solution contains a sentence about the Czech Republic.", form="text"),
         Test(description="The solution contains a sentence about Snezka.", form="text"),
+        Test(
+            description="The solution contain any information on tourism in Czech Republic.",
+            form="text",
+        ),
     ],
 )
 
@@ -24,7 +28,8 @@ def test_text_validator():
     with open("misc/graph.png", "wb") as f:
         f.write(Image(graph.get_graph().draw_mermaid_png()).data)
     result = graph.invoke(TEST_SOLUTION.model_dump())
-    pprint(result)
+    for test in result["tests"]:
+        pprint(test)
 
 
 if __name__ == "__main__":
