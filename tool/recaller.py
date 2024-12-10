@@ -4,7 +4,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
 from tool.models import TaskWithSolutionRecall
-from tool.memory.solution_db import database, Solution
+from tool.memory.solution_db import database, _Solution
 
 
 SOLUTION_JUDGE_PROMPT = """
@@ -54,7 +54,7 @@ def recall(task: TaskWithSolutionRecall) -> TaskWithSolutionRecall:
     return task_with_solution_recall
 
 
-def _recalled_solution_description(solution: Solution) -> str:
+def _recalled_solution_description(solution: _Solution) -> str:
     return f"Task: {solution.task}\nContext: {solution.context}\nSolution:\n{solution.solution}\n"
 
 

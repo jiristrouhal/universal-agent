@@ -1,8 +1,8 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-from tool.models import TaskWithSources, State
-from tool.memory.solution_db import Solution, Test, database
+from tool.models import TaskWithSources, State, Solution, Test
+from tool.memory.solution_db import database
 
 
 _PROPOSE_SOLUTION_PROMPT = """
