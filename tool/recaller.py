@@ -7,7 +7,7 @@ from tool.models import TaskWithSolutionRecall
 from tool.memory.solution_db import database, _Solution
 
 
-SOLUTION_JUDGE_PROMPT = """
+SOLUTION_RECALL_PROMPT = """
 You are a helpful assistant, that analyzes the user's request and provides the most relevant solutions from memory.
 
 Look on the given task asked in given context and assess the best solution from the list of solutions to similar problems from the past.
@@ -59,7 +59,7 @@ def _recalled_solution_description(solution: _Solution) -> str:
 
 
 def _assess_solutions(task: str, context: str, solutions: str) -> str:
-    formatted_system_prompt = SOLUTION_JUDGE_PROMPT.format(
+    formatted_system_prompt = SOLUTION_RECALL_PROMPT.format(
         task=task, context=context, solutions=solutions
     )
     messages = [SystemMessage(content=formatted_system_prompt)]
