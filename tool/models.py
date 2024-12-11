@@ -6,6 +6,8 @@ from operator import add
 import pydantic
 from langchain_core.messages import AnyMessage
 
+ResourceForm = Literal["code", "text"]
+
 
 class State(TypedDict):
     messages: Annotated[list[AnyMessage], add]
@@ -32,14 +34,14 @@ class TaskWithTests(pydantic.BaseModel):
     task: str
     context: str
     requirements: list[str]
-    tests: list[str]
+    tests: list[Test]
 
 
 class TaskWithSolutionStructure(pydantic.BaseModel):
     task: str
     context: str
     requirements: list[str]
-    tests: list[str]
+    tests: list[Test]
     solution_structure: list[str]
 
 
@@ -47,7 +49,7 @@ class TaskWithSources(pydantic.BaseModel):
     task: str
     context: str
     requirements: list[str]
-    tests: list[str]
+    tests: list[Test]
     solution_structure: list[str]
     sources: dict[str, str]
 
@@ -130,13 +132,10 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
         )
 
 
-ResourceForm = Literal["code", "text"]
-
-
 class Resource(pydantic.BaseModel):
     form: ResourceForm
     context: str
-    query: str
+    request: str
     content: str
     id: str = str(uuid4())
 

@@ -12,7 +12,7 @@ test_db.add(
         form="text",
         context="Personal questions about work life",
         content="I work in the city of Brno.",
-        query="In which city do I work?",
+        request="In which city do I work?",
     )
 )
 results = test_db.get("text", "Personal questions about work life", "Where do I work?")

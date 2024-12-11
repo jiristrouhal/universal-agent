@@ -11,7 +11,7 @@ from tool.recaller import recall, recalled_or_new
 from tool.solution_proposer.requirements import get_requirements
 from tool.solution_proposer.tests import get_tests
 from tool.solution_proposer.structure import get_solution_structure
-from tool.solution_proposer.resources import collect_sources
+from tool.solution_proposer.resources import collect_resources
 from tool.solution_proposer.solution import propose_solution, print_solution
 
 
@@ -27,7 +27,7 @@ builder.add_node("recall_solutions", recall)
 builder.add_node("get_requirements", get_requirements)
 builder.add_node("get_tests", get_tests)
 builder.add_node("get_solution_structure", get_solution_structure)
-builder.add_node("collect_resources", collect_sources)
+builder.add_node("collect_resources", collect_resources)
 builder.add_node("propose_solution", propose_solution)
 builder.add_node("print_solution", print_solution)
 

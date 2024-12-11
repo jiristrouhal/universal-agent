@@ -13,3 +13,4 @@ build
 ./output
 dummy.*
 data
+test_data
