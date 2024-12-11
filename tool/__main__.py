@@ -8,11 +8,11 @@ from langchain_core.messages import HumanMessage, BaseMessage
 from tool.models import State, task_with_empty_recall
 from tool.task_extractor import parse_task
 from tool.recaller import recall, recalled_or_new
-from tool.solver.requirements import get_requirements
-from tool.solver.tests import get_tests
-from tool.solver.structure import get_solution_structure
-from tool.solver.sources import collect_sources
-from tool.solver.solution import propose_solution, print_solution
+from tool.solution_proposer.requirements import get_requirements
+from tool.solution_proposer.tests import get_tests
+from tool.solution_proposer.structure import get_solution_structure
+from tool.solution_proposer.resources import collect_sources
+from tool.solution_proposer.solution import propose_solution, print_solution
 
 
 dotenv.load_dotenv()

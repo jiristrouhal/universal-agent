@@ -1,7 +1,7 @@
 import dotenv
 from langgraph.graph import StateGraph, START, END
 
-from tool.solver.solution import Solution
+from tool.solution_proposer.solution import Solution
 from tool.validator.text import text_validator_builder as _text_validator_builder
 from tool.validator.code import code_validator_builder as _code_validator_builder
 

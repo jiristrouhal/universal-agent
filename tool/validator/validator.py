@@ -20,7 +20,7 @@ from langchain_community.tools.wikipedia.tool import WikipediaQueryRun, Wikipedi
 from langchain_experimental.tools import PythonREPLTool
 from langchain_core.tools import tool
 
-from tool.solver.solution import Solution, Test
+from tool.solution_proposer.solution import Solution, Test
 
 
 dotenv.load_dotenv()

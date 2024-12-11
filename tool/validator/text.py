@@ -7,7 +7,7 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from tool.solver.solution import Solution, Test
+from tool.solution_proposer.solution import Solution, Test
 
 
 dotenv.load_dotenv()
