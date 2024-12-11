@@ -138,7 +138,7 @@ class Resource(pydantic.BaseModel):
     context: str
     query: str
     content: str
-    id: str = ""
+    id: str = str(uuid4())
 
 
 def task_with_empty_recall(task: TaskPlain) -> TaskWithSolutionRecall:
