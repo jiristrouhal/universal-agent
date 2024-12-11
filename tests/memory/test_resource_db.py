@@ -16,7 +16,8 @@ test_db.add(
     )
 )
 results = test_db.get("text", "Personal questions about work life", "Where do I work?")
-print(results)
+assert "Brno" in results[0].content, "The result must contain the city of Brno."
+
 
 if os.path.isdir("./tests/memory/test_data"):
     shutil.rmtree("./tests/memory/test_data", ignore_errors=True)

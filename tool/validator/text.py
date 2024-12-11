@@ -34,7 +34,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
         return SolutionWithTestsToRun(
             task=solution.task,
             context=solution.context,
-            sources=solution.sources,
+            sources=solution.resources,
             requirements=solution.requirements,
             solution_structure=solution.solution_structure,
             tests_to_run=tests_to_run,
@@ -51,7 +51,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
             task=solution_with_next_test.task,
             requirements=solution_with_next_test.requirements,
             context=solution_with_next_test.context,
-            sources=solution_with_next_test.sources,
+            resources=solution_with_next_test.sources,
             solution_structure=solution_with_next_test.solution_structure,
             tests=tests,
             solution=solution_with_next_test.solution,

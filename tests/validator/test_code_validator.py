@@ -10,7 +10,7 @@ TEST_SOLUTION = Solution(
     task="",
     requirements=[],
     solution_structure=[],
-    sources={},
+    resources={},
     solution="""
 def calculate_gravity_acceleration(height: float, planet_mass: float) -> float:
     G = 0.49999999999

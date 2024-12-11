@@ -26,5 +26,5 @@ task_with_resources = collect_resources(task)
 stored_resources = get_database().get(
     form="text", context=task.context, request="average temperature in Mosambique in June"
 )
-for returned, stored in zip(task_with_resources.sources.values(), stored_resources):
+for returned, stored in zip(task_with_resources.resources.values(), stored_resources):
     assert returned == stored.content, "The stored resources must be the same as the returned ones."

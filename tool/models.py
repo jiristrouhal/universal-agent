@@ -45,13 +45,13 @@ class TaskWithSolutionStructure(pydantic.BaseModel):
     solution_structure: list[str]
 
 
-class TaskWithSources(pydantic.BaseModel):
+class TaskWithResources(pydantic.BaseModel):
     task: str
     context: str
     requirements: list[str]
     tests: list[Test]
     solution_structure: list[str]
-    sources: dict[str, str]
+    resources: dict[str, str]
 
 
 class Solution(pydantic.BaseModel):
@@ -63,7 +63,7 @@ class Solution(pydantic.BaseModel):
     task: str
     requirements: list[str]
     solution_structure: list[str]
-    sources: dict[str, str]
+    resources: dict[str, str]
     tests: list[Test]
     form: Literal["text", "code"] = "text"
     solution: str
@@ -88,7 +88,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
     task: str
     context: str
     requirements: list[str]
-    sources: dict[str, str]
+    resources: dict[str, str]
     solution_structure: list[str]
     tests_to_run: dict[int, Test]
     run_tests: dict[int, Test]
@@ -106,7 +106,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
         return SolutionWithTestsToRun(
             task=solution.task,
             context=solution.context,
-            sources=solution.sources,
+            resources=solution.resources,
             requirements=solution.requirements,
             solution_structure=solution.solution_structure,
             tests_to_run=tests_to_run,
@@ -124,7 +124,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
             task=solution_with_next_test.task,
             requirements=solution_with_next_test.requirements,
             context=solution_with_next_test.context,
-            sources=solution_with_next_test.sources,
+            resources=solution_with_next_test.resources,
             solution_structure=solution_with_next_test.solution_structure,
             tests=tests,
             form=solution_with_next_test.form,

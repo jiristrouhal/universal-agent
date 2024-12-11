@@ -10,7 +10,7 @@ TEST_SOLUTION = Solution(
     task="",
     requirements=[],
     solution_structure=[],
-    sources={},
+    resources={},
     solution="The highest point of the Czech Republic is the peak of Snezka, which is 1602 meters above sea level.",
     tests=[
         Test(description="The solution contains a sentence about the Czech Republic.", form="text"),

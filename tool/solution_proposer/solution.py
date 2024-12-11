@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-from tool.models import TaskWithSources, State, Solution, Test
+from tool.models import TaskWithResources, State, Solution, Test
 from tool.memory.solution_db import database
 
 
@@ -27,7 +27,7 @@ You should respond to me only with the solution. Do not write anything else.
 _model = ChatOpenAI(model="gpt-4o-mini")
 
 
-def propose_solution(draft: TaskWithSources) -> Solution:
+def propose_solution(draft: TaskWithResources) -> Solution:
     """Propose a solution to the task and store it in the solution database."""
     query = (
         f"Context: {draft.context}\n"
@@ -41,9 +41,9 @@ def propose_solution(draft: TaskWithSources) -> Solution:
         task=draft.task,
         context=draft.context,
         requirements=draft.requirements,
-        sources=draft.sources,
+        resources=draft.resources,
         solution_structure=draft.solution_structure,
-        tests=[Test(description=t, critique_of_last_run="") for t in draft.tests],
+        tests=draft.tests,
         solution=solution,
     )
     database.add_solution(solution_obj)
