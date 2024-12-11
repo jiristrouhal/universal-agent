@@ -130,5 +130,16 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
         )
 
 
+ResourceForm = Literal["code", "text"]
+
+
+class Resource(pydantic.BaseModel):
+    form: ResourceForm
+    context: str
+    query: str
+    content: str
+    id: str = ""
+
+
 def task_with_empty_recall(task: TaskPlain) -> TaskWithSolutionRecall:
     return TaskWithSolutionRecall(task=task.task, context=task.context, solution_recall="")
