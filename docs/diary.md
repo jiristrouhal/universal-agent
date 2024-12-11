@@ -14,3 +14,4 @@ There will actually be two databases:
 
 11.12.2024
 The resource database should be in fact two databases - one for code, seconds for text.
+

@@ -36,7 +36,7 @@ builder.add_edge(START, "parse_task")
 builder.add_edge("parse_task", "init_solution_recall")
 builder.add_edge("init_solution_recall", "recall_solutions")
 builder.add_conditional_edges(
-    "recall_solutions", recalled_or_new, {"new": "get_requirements", "recalled": END}
+    "recall_solutions", recalled_or_new, {"new": "get_requirements", "recalled": "print_solution"}
 )
 builder.add_edge("get_requirements", "get_tests")
 builder.add_edge("get_tests", "get_solution_structure")
@@ -58,7 +58,7 @@ result = graph.invoke(
             HumanMessage(
                 content="""
                     Can you write for me a function that determines temperature distribution in a rod constantly heated on one side and cooled on the other?
-                    There are no heat losses or sources along the rod. Consider the rod one-dimensional. I assume some constant initial temperature along the rod.
+                    There are no heat losses or sources along the rod. Consider the rod one-dimensional. I assume constant initial temperature along the rod.
                 """
             )
         ]

@@ -5,9 +5,10 @@ from tool.solution_proposer.resources import new_custom_database, collect_resour
 from tool.models import TaskWithSolutionStructure
 
 
-if os.path.exists("./tests/solution_proposer/test_data"):
-    shutil.rmtree("./tests/solution_proposer/test_data", ignore_errors=True)
-new_custom_database("./tests/solution_proposer/test_data")
+DB_PATH = "./tests/solution_proposer/resources/test_data"
+if os.path.exists(DB_PATH):
+    shutil.rmtree(DB_PATH, ignore_errors=True)
+new_custom_database(DB_PATH)
 
 
 task = TaskWithSolutionStructure(
