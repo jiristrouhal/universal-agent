@@ -12,15 +12,13 @@ from __future__ import annotations
 
 
 import dotenv
-from pprint import pprint
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt.chat_agent_executor import create_react_agent
 from langchain_community.tools.wikipedia.tool import WikipediaQueryRun, WikipediaAPIWrapper
 from langchain_experimental.tools import PythonREPLTool
-from langchain_core.tools import tool
 
-from tool.solution_proposer.solution import Solution, Test
+from tool.solution_proposer.solution import Test
 
 
 dotenv.load_dotenv()

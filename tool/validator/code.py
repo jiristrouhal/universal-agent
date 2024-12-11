@@ -106,7 +106,6 @@ def run_test(solution_with_next_test: SolutionWithTestsToRun) -> SolutionWithTes
     """
     test_id = list(solution_with_next_test.tests_to_run.keys())[0]
     test = solution_with_next_test.tests_to_run.pop(test_id)
-    print(test.implementation)
     response = run_python_code(code=test.implementation)
     solution_with_next_test.run_tests[test_id] = test
     solution_with_next_test.run_tests[test_id].last_output = response

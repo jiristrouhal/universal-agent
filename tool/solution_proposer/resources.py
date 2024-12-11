@@ -40,6 +40,20 @@ Do not write anything else.
 """
 
 
+_RESOURCE_FORM_PROMPT = """
+You are a helpful assistant that helps me to find the resource in the required form.
+
+I will provide you with the following information:
+Query: This is the query that I need to find the resource for.
+
+You will respond with the resource in the required form:
+- If the resource is a text, you return 'text',
+- If the resource is a code, you return 'code'.
+
+Do not write anything else.
+"""
+
+
 _GET_RESOURCE_PROMPT = """
 You are a helpful assistant, that helps me to find answer or solution to a question or request.
 
@@ -76,17 +90,17 @@ def collect_resources(draft: TaskWithSolutionStructure) -> TaskWithResources:
         f"Context: {draft.context}\n"
         f"Solution draft: {draft.solution_structure}"
     )
-    extraction_messages = [
-        SystemMessage(content=_IDENTIFY_SOURCES_PROMPT),
-        HumanMessage(content=query),
-    ]
-    requests_for_sources: list[str] = list(
-        json.loads(str(_model.invoke(extraction_messages).content))
-    )
-    requested_sources = dict.fromkeys(requests_for_sources, "Not provided")
+    messages = [SystemMessage(_IDENTIFY_SOURCES_PROMPT), HumanMessage(query)]
+    requests_for_sources: list[str] = list(json.loads(str(_model.invoke(messages).content)))
 
+    # Get the form of solution - text or code
+    form_query = f"Query: {requests_for_sources[0]}"
+    form_messages = [SystemMessage(_RESOURCE_FORM_PROMPT), HumanMessage(form_query)]
+    form = "code" if "code" in _model.invoke(form_messages).content else "text"
+
+    requested_sources = dict.fromkeys(requests_for_sources, "Not provided")
     for request in requested_sources:
-        results = _database.get(form="text", context=draft.context, request=request)
+        results = _database.get(form=form, context=draft.context, request=request)
         for r in results:
             answer = _model.invoke(
                 [
@@ -103,7 +117,6 @@ def collect_resources(draft: TaskWithSolutionStructure) -> TaskWithResources:
 
     for request in requested_sources:
         if requested_sources[request] != "Not provided":
-            print(f"Resource for '{request}' already provided")
             continue
         full_request = f"Task: {draft.task}\nContext: {draft.context}\nRequest: {request}"
         messages = [SystemMessage(content=_GET_RESOURCE_PROMPT), HumanMessage(content=full_request)]
@@ -127,7 +140,3 @@ def new_custom_database(db_location: str = "") -> None:
 
 def get_database() -> _ResourceDB:
     return _database
-
-
-def print_sources(draft_with_sources: TaskWithResources) -> State:
-    return State(messages=[HumanMessage(content=str(draft_with_sources.model_dump_json(indent=4)))])
