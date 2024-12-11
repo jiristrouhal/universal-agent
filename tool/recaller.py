@@ -41,6 +41,7 @@ _model = ChatOpenAI(model="gpt-4o-mini")
 
 
 def recall(task: TaskWithSolutionRecall) -> TaskWithSolutionRecall:
+    """Recall the solution from the memory and assess if it is relevant."""
     recalled_solutions = database.get_solutions(task.context, task.task, k=3)
     solutions_str = ""
     for k in range(len(recalled_solutions)):
@@ -70,6 +71,7 @@ def _assess_solutions(task: str, context: str, solutions: str) -> str:
 def recalled_or_new(
     task_with_solution_recall: TaskWithSolutionRecall,
 ) -> Literal["recalled", "new"]:
+    """Determine if the further path in the graph should go through the recalled or new solution."""
     task = task_with_solution_recall
     result = _model.invoke(
         [
