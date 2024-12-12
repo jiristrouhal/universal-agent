@@ -1,11 +1,7 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-from tool.models import (
-    TaskWithResources as _TaskWithResources,
-    State as _State,
-    Solution as _Solution,
-)
+from tool.models import Solution as _Solution, State as _State
 from tool.memory.solution_db import get_solution_database as _get_database
 
 
@@ -35,7 +31,7 @@ class Proposer:
         self._db = _get_database(db_dir_path)
         self._model = ChatOpenAI(model=openai_model)
 
-    def propose_solution(self, draft: _TaskWithResources) -> _Solution:
+    def propose_solution(self, draft: _Solution) -> _Solution:
         """Propose a solution to the task and store it in the solution database."""
         query = (
             f"Context: {draft.context}\n"

@@ -15,13 +15,7 @@ from tool.proposer import Proposer
 from tool.proposer.resources import ResourceManager
 from tool.recaller import Recaller
 
-from tool.models import (
-    State,
-    TaskWithSolutionRecall,
-    TaskWithSolutionStructure,
-    TaskWithResources,
-    Solution,
-)
+from tool.models import State, TaskWithSolutionRecall, TaskWithSolutionStructure, Solution
 
 dotenv.load_dotenv()
 
@@ -39,7 +33,7 @@ builder.add_node("get_requirements", get_requirements)
 builder.add_node("get_tests", get_tests)
 builder.add_node("draft_solution", draft_solution)
 builder.add_node("get_resources", info_manager.get_resources, input=TaskWithSolutionStructure)
-builder.add_node("propose_solution", proposer.propose_solution, input=TaskWithResources)
+builder.add_node("propose_solution", proposer.propose_solution, input=Solution)
 builder.add_node("print_solution", proposer.print_solution, input=Solution)
 
 

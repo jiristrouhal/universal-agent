@@ -45,15 +45,6 @@ class TaskWithSolutionStructure(pydantic.BaseModel):
     solution_structure: list[str]
 
 
-class TaskWithResources(pydantic.BaseModel):
-    task: str
-    context: str
-    requirements: list[str]
-    tests: list[Test]
-    solution_structure: list[str]
-    resources: dict[str, str]
-
-
 class Solution(pydantic.BaseModel):
     """This class represents a solution to a specific task in a specific context. It is used to store the solution in the database
     with the data necessary for the solution modifications and verification, including tests, source links and the solution structure.
@@ -64,9 +55,9 @@ class Solution(pydantic.BaseModel):
     requirements: list[str]
     solution_structure: list[str]
     resources: dict[str, str]
-    tests: list[Test]
+    tests: list[Test] = pydantic.Field(default_factory=list)
     form: Literal["text", "code"] = "text"
-    solution: str
+    solution: str = ""
     id: str = str(uuid4())
 
     @property

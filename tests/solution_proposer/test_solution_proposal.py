@@ -1,7 +1,7 @@
 import unittest
 
 from tool.proposer import Proposer
-from tool.models import TaskWithResources, Test, Solution
+from tool.models import Solution, Test
 
 
 class Test_Solution_Proposal(unittest.TestCase):
@@ -10,7 +10,7 @@ class Test_Solution_Proposal(unittest.TestCase):
         self.proposer = Proposer(db_dir_path="./data/solutions")
 
     def test_solution_proposal(self):
-        draft = TaskWithResources(
+        draft = Solution(
             task="Give me a code returning the geometric average of a list of floats.",
             context="I want to build library of unusual mathematical functions.",
             tests=[
