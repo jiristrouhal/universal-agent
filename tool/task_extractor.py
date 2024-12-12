@@ -6,7 +6,6 @@ from tool.models import Task as _TaskPlain, State as _State
 
 
 model = ChatOpenAI(name="gpt-4o-mini")
-
 task_extractor = create_extractor(model, tools=[_TaskPlain], tool_choice="TaskPlain")
 TASK_EXTRACTOR_PROMPT = "Extract a task with context from the following messages."
 
@@ -20,8 +19,3 @@ def parse_task(state: _State) -> _TaskPlain:
     result = task_extractor.invoke({"messages": messages})["responses"][0]
     assert isinstance(result, _TaskPlain)
     return result
-
-
-def present_task(task: _TaskPlain) -> _State:
-    """This function presents the task to the user."""
-    return _State(messages=[SystemMessage(f"Task: {task.task}\nContext: {task.context}")])
