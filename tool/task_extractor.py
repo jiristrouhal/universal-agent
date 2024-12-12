@@ -14,7 +14,6 @@ def parse_task(state: _State) -> _TaskPlain:
     """This function extracts a task from the messages in the state and returns it as a single message
     containing the task.
     """
-    messages = [SystemMessage(TASK_EXTRACTOR_PROMPT)]
-    messages.extend(state["messages"])  # type: ignore
+    messages = [SystemMessage(TASK_EXTRACTOR_PROMPT)] + state["messages"]  # type: ignore
     result = task_extractor.invoke({"messages": messages})["responses"][0]
-    return result
+    return _TaskPlain(**result.model_dump())
