@@ -6,7 +6,7 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import HumanMessage, BaseMessage
 
 from tool.models import State, task_with_empty_recall
-from tool.task_extractor import parse_task
+from tool.task_parser import parse_task
 from tool.proposer.requirements import get_requirements
 from tool.proposer.tests import get_tests
 from tool.proposer.structure import draft_solution
