@@ -2,7 +2,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 from trustcall import create_extractor
 
-from tool.models import TaskPlain as _TaskPlain, State as _State
+from tool.models import Task as _TaskPlain, State as _State
 
 
 model = ChatOpenAI(name="gpt-4o-mini")

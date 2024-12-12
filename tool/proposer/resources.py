@@ -5,7 +5,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.prebuilt.chat_agent_executor import create_react_agent
 from langchain_community.tools.wikipedia.tool import WikipediaQueryRun, WikipediaAPIWrapper
 
-from tool.models import Solution, TaskWithSolutionStructure, ResourceForm
+from tool.models import Solution, Solution, ResourceForm
 from tool.memory.resource_db import ResourceDB as _ResourceDB, new_custom_database as _resource_db
 
 
@@ -84,7 +84,7 @@ class ResourceManager:
     def db(self) -> _ResourceDB:
         return self._resource_db
 
-    def get_resources(self, draft: TaskWithSolutionStructure) -> Solution:
+    def get_resources(self, draft: Solution) -> Solution:
         query = (
             f"Task: {draft.task}\n"
             f"Context: {draft.context}\n"

@@ -1,12 +1,13 @@
 import unittest
 import os
 import shutil
+from uuid import uuid4
 
 from tool.recaller import Recaller
 from tool.models import TaskWithSolutionRecall
 
 
-TEST_DB_PATH = os.path.dirname(__file__) + "/test_data"
+TEST_DB_PATH = os.path.dirname(__file__) + f"/test_data{uuid4()}"
 
 
 class Test_Recaller(unittest.TestCase):

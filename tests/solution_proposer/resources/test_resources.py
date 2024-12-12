@@ -3,7 +3,7 @@ import shutil
 import unittest
 
 from tool.proposer.resources import ResourceManager
-from tool.models import TaskWithSolutionStructure
+from tool.models import Solution
 
 
 TEST_RESOURCE_DB_PATH = os.path.dirname(__file__) + "/test_data"
@@ -17,7 +17,7 @@ class Test_Simple_Tasks(unittest.TestCase):
         self.info_manager = ResourceManager(TEST_RESOURCE_DB_PATH)
 
     def test_text_task(self):
-        text_task = TaskWithSolutionStructure(
+        text_task = Solution(
             task="Tell me the average temperature in Mosambique in June in degrees Celsius.",
             context="I am planning a trip to Mosambique in June and I want to know what temperature to expect.",
             solution_structure=[
@@ -39,7 +39,7 @@ class Test_Simple_Tasks(unittest.TestCase):
             ), "The stored resources must be the same as the returned ones."
 
     def test_code_task(self):
-        code_task = TaskWithSolutionStructure(
+        code_task = Solution(
             task="Return give me a function that calculates gravity acceleration above Jupiter.",
             context="I am working on a project that requires me to calculate gravity acceleration above Jupiter.",
             solution_structure=[

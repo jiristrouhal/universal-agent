@@ -3,7 +3,7 @@ import json
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from tool.models import TaskToSolve, TaskWithTests, Test
+from tool.models import Solutions, Solution, Test
 
 
 SOLUTION_REQUIREMENT_PROMPT = """
@@ -31,13 +31,13 @@ Do not write anything else.
 _model = ChatOpenAI(model="gpt-4o-mini")
 
 
-def get_tests(task_to_solve: TaskToSolve) -> TaskWithTests:
+def get_tests(task_to_solve: Solutions) -> Solution:
     task_str = f"Task: {task_to_solve.task}\nContext: {task_to_solve.context}\nRequirements: {task_to_solve.requirements}"
     messages = [SystemMessage(content=SOLUTION_REQUIREMENT_PROMPT), HumanMessage(content=task_str)]
     result = _model.invoke(messages)
     tests_str = list(json.loads(str(result.content)))
     tests = [Test(description=t) for t in tests_str]
-    return TaskWithTests(
+    return Solution(
         task=task_to_solve.task,
         context=task_to_solve.context,
         requirements=task_to_solve.requirements,

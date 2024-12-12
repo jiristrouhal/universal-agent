@@ -6,6 +6,7 @@ from operator import add
 import pydantic
 from langchain_core.messages import AnyMessage
 
+
 ResourceForm = Literal["code", "text"]
 
 
@@ -13,7 +14,7 @@ class State(TypedDict):
     messages: Annotated[list[AnyMessage], add]
 
 
-class TaskPlain(pydantic.BaseModel):
+class Task(pydantic.BaseModel):
     task: str
     context: str
 
@@ -24,27 +25,6 @@ class TaskWithSolutionRecall(pydantic.BaseModel):
     solution_recall: str
 
 
-class TaskToSolve(pydantic.BaseModel):
-    task: str
-    context: str
-    requirements: list[str]
-
-
-class TaskWithTests(pydantic.BaseModel):
-    task: str
-    context: str
-    requirements: list[str]
-    tests: list[Test]
-
-
-class TaskWithSolutionStructure(pydantic.BaseModel):
-    task: str
-    context: str
-    requirements: list[str]
-    tests: list[Test]
-    solution_structure: list[str]
-
-
 class Solution(pydantic.BaseModel):
     """This class represents a solution to a specific task in a specific context. It is used to store the solution in the database
     with the data necessary for the solution modifications and verification, including tests, source links and the solution structure.
@@ -52,9 +32,9 @@ class Solution(pydantic.BaseModel):
 
     context: str
     task: str
-    requirements: list[str]
-    solution_structure: list[str]
-    resources: dict[str, str]
+    requirements: list[str] = pydantic.Field(default_factory=list)
+    solution_structure: list[str] = pydantic.Field(default_factory=list)
+    resources: dict[str, str] = pydantic.Field(default_factory=dict)
     tests: list[Test] = pydantic.Field(default_factory=list)
     form: Literal["text", "code"] = "text"
     solution: str = ""
@@ -131,5 +111,5 @@ class Resource(pydantic.BaseModel):
     id: str = str(uuid4())
 
 
-def task_with_empty_recall(task: TaskPlain) -> TaskWithSolutionRecall:
+def task_with_empty_recall(task: Task) -> TaskWithSolutionRecall:
     return TaskWithSolutionRecall(task=task.task, context=task.context, solution_recall="")
