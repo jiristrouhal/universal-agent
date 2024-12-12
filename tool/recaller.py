@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Literal
 
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, AnyMessage
 from langchain_openai import ChatOpenAI
 
 from tool.models import TaskWithSolutionRecall as _TaskWithSolutionRecall, Solution as _Solution
@@ -44,21 +44,11 @@ class Recaller:
         self._db = _get_database(db_dir_path)
         self._model = ChatOpenAI(model=openai_model)
 
-    def recall(self, task: _TaskWithSolutionRecall) -> _TaskWithSolutionRecall:
-        """Recall the solution from the memory and assess if it is relevant."""
-        recalled_solutions = self._db.get_solutions(task.context, task.task, k=3)
-        solutions_str = ""
-        for k in range(len(recalled_solutions)):
-            solutions_str += f"Solution {k}:\n" + self._recalled_solution_description(
-                recalled_solutions[k]
-            )
-            if k < len(recalled_solutions) - 1:
-                solutions_str += "\n\n"
-        result = self._assess_solutions(task.task, task.context, solutions_str)
-        task_with_solution_recall = _TaskWithSolutionRecall(
-            task=task.task, context=task.context, solution_recall=result
-        )
-        return task_with_solution_recall
+    def recall(self, empty_solution: _Solution) -> _Solution:
+        """Recall the solution from the memory and pick the most relevant. If none of the recalled solutions is relevant, return the empty solution."""
+        solutions = self._db.get_solutions(empty_solution.context, empty_solution.task, k=3)
+        picked = self._pick_solution(empty_solution.task, empty_solution.context, solutions)
+        return picked
 
     def recalled_or_new(
         self,
@@ -83,10 +73,24 @@ class Recaller:
             f"Task: {solution.task}\nContext: {solution.context}\nSolution:\n{solution.solution}\n"
         )
 
-    def _assess_solutions(self, task: str, context: str, solutions: str) -> str:
+    def _pick_solution(self, task: str, context: str, solutions: list[_Solution]) -> _Solution:
+        solutions_str = ""
+        for i, solution in enumerate(solutions):
+            solutions_str += f"{i}. {self._recalled_solution_description(solution)}\n"
         formatted_system_prompt = SOLUTION_RECALL_PROMPT.format(
-            task=task, context=context, solutions=solutions
+            task=task, context=context, solutions=solutions_str
         )
-        messages = [SystemMessage(content=formatted_system_prompt)]
-        result = str(self._model.invoke(messages).content)
-        return result
+        messages: list[AnyMessage] = [SystemMessage(content=formatted_system_prompt)]
+        picked_solution = str(self._model.invoke(messages).content)
+        messages.append(AIMessage(content=picked_solution))
+        messages.append(
+            HumanMessage(
+                content="What is then the index of the best solution? Do not write anything else. Return 'None' if none of the solutions is relevant."
+            )
+        )
+        result = str(self._model.invoke(messages))
+        if result.isdigit():
+            return solutions[int(result)]
+        else:
+            # Return the empty solution if none of the solutions is relevant.
+            return _Solution(task=task, context=context)

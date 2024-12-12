@@ -40,6 +40,9 @@ class Solution(pydantic.BaseModel):
     solution: str = ""
     id: str = str(uuid4())
 
+    def empty(self) -> bool:
+        return not bool(self.solution.strip())
+
     @property
     def task_description(self) -> str:
         return f"Context: {self.context}\nTask: {self.task}"

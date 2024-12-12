@@ -4,7 +4,7 @@ import shutil
 from uuid import uuid4
 
 from tool.recaller import Recaller
-from tool.models import TaskWithSolutionRecall
+from tool.models import Solution
 
 
 TEST_DB_PATH = os.path.dirname(__file__) + f"/test_data{uuid4()}"
@@ -18,13 +18,12 @@ class Test_Recaller(unittest.TestCase):
         self.recaller = Recaller(TEST_DB_PATH)
 
     def test_recall(self):
-        task_without_solution = TaskWithSolutionRecall(
+        empty_solution = Solution(
             task="Give me a code returning the geometric average of a list of floats.",
             context="I want to build library of unusual mathematical functions.",
-            solution_recall="",
         )
-        recalled_solution = self.recaller.recall(task_without_solution)
-        print(recalled_solution.solution_recall)
+        recalled_solution = self.recaller.recall(empty_solution)
+        self.assertEqual(recalled_solution, empty_solution)
 
     def tearDown(self):
         if os.path.exists(TEST_DB_PATH):
