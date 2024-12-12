@@ -1,6 +1,5 @@
 from __future__ import annotations
 import json
-import os
 
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings

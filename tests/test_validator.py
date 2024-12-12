@@ -1,7 +1,7 @@
 import unittest
 
 from tool.validator.validator import implement_test, run_test
-from tool.solution_proposer.solution import Test
+from tool.models import Test
 
 
 class Test_Implementation(unittest.TestCase):

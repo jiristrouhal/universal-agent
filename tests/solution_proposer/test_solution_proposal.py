@@ -1,10 +1,13 @@
 import unittest
 
-from tool.solution_proposer.solution import propose_solution
+from tool.proposer import Proposer
 from tool.models import TaskWithResources, Test, Solution
 
 
 class Test_Solution_Proposal(unittest.TestCase):
+
+    def setUp(self):
+        self.proposer = Proposer(db_dir_path="./data/solutions")
 
     def test_solution_proposal(self):
         draft = TaskWithResources(
@@ -29,7 +32,7 @@ class Test_Solution_Proposal(unittest.TestCase):
             resources={},
         )
 
-        solution = propose_solution(draft)
+        solution = self.proposer.propose_solution(draft)
         assert isinstance(solution, Solution), "The solution must be a Solution object."
         print(solution.solution)
 

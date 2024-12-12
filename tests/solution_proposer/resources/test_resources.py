@@ -2,11 +2,11 @@ import os
 import shutil
 import unittest
 
-from tool.solution_proposer.resources import new_custom_database, collect_resources, get_database
+from tool.proposer.resources import ResourceManager
 from tool.models import TaskWithSolutionStructure
 
 
-TEST_RESOURCE_DB_PATH = "./tests/solution_proposer/resources/test_data"
+TEST_RESOURCE_DB_PATH = os.path.dirname(__file__) + "/test_data"
 
 
 class Test_Simple_Tasks(unittest.TestCase):
@@ -14,7 +14,7 @@ class Test_Simple_Tasks(unittest.TestCase):
     def setUp(self):
         if os.path.exists(TEST_RESOURCE_DB_PATH):
             shutil.rmtree(TEST_RESOURCE_DB_PATH, ignore_errors=True)
-        new_custom_database(TEST_RESOURCE_DB_PATH)
+        self.info_manager = ResourceManager(TEST_RESOURCE_DB_PATH)
 
     def test_text_task(self):
         text_task = TaskWithSolutionStructure(
@@ -27,8 +27,8 @@ class Test_Simple_Tasks(unittest.TestCase):
             tests=[],  # not necessary for this test
             requirements=[],  # not necessary for this test
         )
-        task_with_resources = collect_resources(text_task)
-        stored_resources = get_database().get(
+        task_with_resources = self.info_manager.get_resources(text_task)
+        stored_resources = self.info_manager.db.get(
             form="text",
             context=text_task.context,
             request="average temperature in Mosambique in June",
@@ -50,14 +50,18 @@ class Test_Simple_Tasks(unittest.TestCase):
             tests=[],  # not necessary for this test
             requirements=[],  # not necessary for this test
         )
-        task_with_resources = collect_resources(code_task)
-        stored_resources = get_database().get(
+        task_with_resources = self.info_manager.get_resources(code_task)
+        stored_resources = self.info_manager.db.get(
             form="code", context=code_task.context, request="gravity acceleration above Jupiter"
         )
         for returned, stored in zip(task_with_resources.resources.values(), stored_resources):
             assert (
                 returned == stored.content
             ), "The stored resources must be the same as the returned ones."
+
+    def tearDown(self):
+        if os.path.exists(TEST_RESOURCE_DB_PATH):
+            shutil.rmtree(TEST_RESOURCE_DB_PATH, ignore_errors=True)
 
 
 if __name__ == "__main__":

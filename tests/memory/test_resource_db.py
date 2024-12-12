@@ -6,7 +6,7 @@ from tool.memory.resource_db import ResourceDB
 from tool.models import Resource
 
 
-test_db = ResourceDB("./tests/memory/test_data")
+test_db = ResourceDB(os.path.dirname(__file__) + "/test_data")
 
 
 class Test_ResourceDB(unittest.TestCase):

@@ -18,7 +18,7 @@ from langgraph.prebuilt.chat_agent_executor import create_react_agent
 from langchain_community.tools.wikipedia.tool import WikipediaQueryRun, WikipediaAPIWrapper
 from langchain_experimental.tools import PythonREPLTool
 
-from tool.solution_proposer.solution import Test
+from tool.models import Test as _Test
 
 
 dotenv.load_dotenv()
@@ -75,7 +75,7 @@ In case the test failed, the critique will contain also
 """
 
 
-def implement_test(test: Test, solution: str) -> None:
+def implement_test(test: _Test, solution: str) -> None:
     """Implements a test on a solution."""
     test_form = _determine_test_form(test, solution)
     query = f"Test form: {test_form}, Test description: {test.description}\nSolution: {solution}"
@@ -84,7 +84,7 @@ def implement_test(test: Test, solution: str) -> None:
     test.implementation = response
 
 
-def _determine_test_form(test: Test, solution: str) -> str:
+def _determine_test_form(test: _Test, solution: str) -> str:
     """Determines the form of the test implementation."""
     query = f"Test description: {test.description}\nSolution: {solution}"
     messages = [SystemMessage(content=TEST_FORM_PROMPT), HumanMessage(content=query)]
@@ -92,7 +92,7 @@ def _determine_test_form(test: Test, solution: str) -> str:
     return response
 
 
-def run_test(test: Test, solution: str) -> None:
+def run_test(test: _Test, solution: str) -> None:
     """Runs a single test on a solution."""
     query = f"Test implementation: {test.implementation}\nSolution: {solution}"
     messages = [SystemMessage(content=TEST_RUNNER_PROMPT), HumanMessage(content=query)]

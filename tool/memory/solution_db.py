@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import os
 
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
@@ -7,13 +8,13 @@ from langchain_openai import OpenAIEmbeddings
 from tool.models import Solution as _Solution
 
 
-class _SolutionDB:
+class SolutionDB:
 
-    def __init__(self) -> None:
+    def __init__(self, persist_directory: str) -> None:
         self._db = Chroma(
             collection_name="solution",
             embedding_function=OpenAIEmbeddings(model="text-embedding-3-small"),
-            persist_directory="./data",
+            persist_directory=persist_directory,
         )
 
     def add_solution(self, solution: _Solution) -> _Solution:
@@ -32,4 +33,12 @@ class _SolutionDB:
         ]
 
 
-database = _SolutionDB()
+def get_solution_database(path: str) -> SolutionDB:
+    """Create a SolutionDB instance, providing access to a Chroma vector database (https://www.trychroma.com/).
+    The database is created in the directory specified by the `path` argument.
+
+    If the directory does not exist, it is created including its parent directories.
+    """
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return SolutionDB(path)

@@ -28,7 +28,7 @@ Do not write anything else.
 _model = ChatOpenAI(model="gpt-4o-mini")
 
 
-def get_solution_structure(task_with_tests: TaskWithTests) -> TaskWithSolutionStructure:
+def draft_solution(task_with_tests: TaskWithTests) -> TaskWithSolutionStructure:
     task_str = (
         f"Task: {task_with_tests.task}\n"
         f"Context: {task_with_tests.context}\n"

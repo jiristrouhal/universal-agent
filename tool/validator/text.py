@@ -7,7 +7,7 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from tool.solution_proposer.solution import Solution, Test
+from tool.models import Solution as _Solution, Test as _Test
 
 
 dotenv.load_dotenv()
@@ -19,12 +19,12 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
     requirements: list[str]
     sources: dict[str, str]
     solution_structure: list[str]
-    tests_to_run: dict[int, Test]
-    run_tests: dict[int, Test]
+    tests_to_run: dict[int, _Test]
+    run_tests: dict[int, _Test]
     solution: str
 
     @staticmethod
-    def from_solution(solution: Solution) -> SolutionWithTestsToRun:
+    def fromSolution(solution: _Solution) -> SolutionWithTestsToRun:
         tests_to_run, run_tests = dict(), dict()
         for t in solution.tests:
             if t.critique_of_last_run:
@@ -43,11 +43,11 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
         )
 
     @staticmethod
-    def to_solution(solution_with_next_test: SolutionWithTestsToRun) -> Solution:
+    def toSolution(solution_with_next_test: SolutionWithTestsToRun) -> _Solution:
         all_tests = solution_with_next_test.tests_to_run.copy()
         all_tests.update(solution_with_next_test.run_tests)
         tests = [all_tests[k] for k in sorted(all_tests.keys())]
-        return Solution(
+        return _Solution(
             task=solution_with_next_test.task,
             requirements=solution_with_next_test.requirements,
             context=solution_with_next_test.context,
@@ -110,8 +110,8 @@ TEXT_TESTER_END = "__text_tester_end__"
 _model = ChatOpenAI(name="gpt-4o-mini")
 
 
-def prepare_solution_with_tests_to_run(solution: Solution) -> SolutionWithTestsToRun:
-    return SolutionWithTestsToRun.from_solution(solution)
+def prepareSolution_with_tests_to_run(solution: _Solution) -> SolutionWithTestsToRun:
+    return SolutionWithTestsToRun.fromSolution(solution)
 
 
 def pick_test(solution_with_next_test: SolutionWithTestsToRun) -> SolutionWithTestsToRun:
@@ -126,10 +126,10 @@ def any_next_test(
     return "end"
 
 
-def return_solution_with_updated_tests(
+def returnSolution_with_updated_tests(
     solution_with_next_test: SolutionWithTestsToRun,
-) -> Solution:
-    return SolutionWithTestsToRun.to_solution(solution_with_next_test)
+) -> _Solution:
+    return SolutionWithTestsToRun.toSolution(solution_with_next_test)
 
 
 def implement_test(solution_with_next_test: SolutionWithTestsToRun) -> SolutionWithTestsToRun:
@@ -163,7 +163,7 @@ def run_test(solution_with_next_test: SolutionWithTestsToRun) -> SolutionWithTes
     return solution_with_next_test
 
 
-def criticize(solution: Solution) -> Solution:
+def criticize(solution: _Solution) -> _Solution:
     for test in solution.tests:
         query = (
             f"Solution: {solution.solution}\nTest description: {test.description}\n"
@@ -180,30 +180,30 @@ def criticize(solution: Solution) -> Solution:
     return solution
 
 
-text_validator_builder = StateGraph(Solution)
+text_validator_builder = StateGraph(_Solution)
 
 text_validator_builder.add_node(
-    "prepare_solution_with_no_test_to_run_next", prepare_solution_with_tests_to_run
+    "prepareSolution_with_no_test_to_run_next", prepareSolution_with_tests_to_run
 )
 text_validator_builder.add_node("pick_test", pick_test)
 text_validator_builder.add_node("implement_next_test", implement_test)
 text_validator_builder.add_node("run_test", run_test)
 text_validator_builder.add_node(
-    "return_solution_with_updated_tests", return_solution_with_updated_tests
+    "returnSolution_with_updated_tests", returnSolution_with_updated_tests
 )
 text_validator_builder.add_node("critic", criticize)
 
-text_validator_builder.add_edge(START, "prepare_solution_with_no_test_to_run_next")
-text_validator_builder.add_edge("prepare_solution_with_no_test_to_run_next", "pick_test")
+text_validator_builder.add_edge(START, "prepareSolution_with_no_test_to_run_next")
+text_validator_builder.add_edge("prepareSolution_with_no_test_to_run_next", "pick_test")
 text_validator_builder.add_conditional_edges(
     "pick_test",
     any_next_test,
     path_map={
-        "end": "return_solution_with_updated_tests",
+        "end": "returnSolution_with_updated_tests",
         "next_test": "implement_next_test",
     },
 )
 text_validator_builder.add_edge("implement_next_test", "run_test")
 text_validator_builder.add_edge("run_test", "pick_test")
-text_validator_builder.add_edge("return_solution_with_updated_tests", "critic")
+text_validator_builder.add_edge("returnSolution_with_updated_tests", "critic")
 text_validator_builder.add_edge("critic", END)
