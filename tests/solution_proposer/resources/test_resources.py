@@ -6,15 +6,15 @@ from tool.solution_proposer.resources import new_custom_database, collect_resour
 from tool.models import TaskWithSolutionStructure
 
 
-DB_PATH = "./tests/solution_proposer/resources/test_data"
+TEST_RESOURCE_DB_PATH = "./tests/solution_proposer/resources/test_data"
 
 
 class Test_Simple_Tasks(unittest.TestCase):
 
     def setUp(self):
-        if os.path.exists(DB_PATH):
-            shutil.rmtree(DB_PATH, ignore_errors=True)
-        new_custom_database(DB_PATH)
+        if os.path.exists(TEST_RESOURCE_DB_PATH):
+            shutil.rmtree(TEST_RESOURCE_DB_PATH, ignore_errors=True)
+        new_custom_database(TEST_RESOURCE_DB_PATH)
 
     def test_text_task(self):
         text_task = TaskWithSolutionStructure(
