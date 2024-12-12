@@ -17,5 +17,4 @@ def parse_task(state: _State) -> _TaskPlain:
     messages = [SystemMessage(TASK_EXTRACTOR_PROMPT)]
     messages.extend(state["messages"])  # type: ignore
     result = task_extractor.invoke({"messages": messages})["responses"][0]
-    assert isinstance(result, _TaskPlain)
     return result
