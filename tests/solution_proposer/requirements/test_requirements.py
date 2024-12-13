@@ -16,5 +16,5 @@ TEST_RESOURCE_DB_PATH = os.path.dirname(__file__) + "/test_data"
 #         reqs = get_requirements()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()

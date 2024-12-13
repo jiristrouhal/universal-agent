@@ -36,5 +36,5 @@ class Test_Code_Validator(unittest.TestCase):
             pprint(test)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()

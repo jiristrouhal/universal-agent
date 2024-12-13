@@ -37,5 +37,5 @@ class Test_Solution_Proposal(unittest.TestCase):
         print(solution.solution)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()

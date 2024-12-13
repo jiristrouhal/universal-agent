@@ -34,5 +34,5 @@ class Test_ResourceDB(unittest.TestCase):
             shutil.rmtree(TEST_DB_PATH, ignore_errors=True)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()

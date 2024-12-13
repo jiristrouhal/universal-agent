@@ -11,18 +11,9 @@ ResourceForm = Literal["code", "text"]
 
 
 class State(TypedDict):
+    """This class represents an input and output state of the whole graph."""
+
     messages: Annotated[list[AnyMessage], add]
-
-
-class Task(pydantic.BaseModel):
-    task: str
-    context: str
-
-
-class TaskWithSolutionRecall(pydantic.BaseModel):
-    task: str
-    context: str
-    solution_recall: str
 
 
 class Solution(pydantic.BaseModel):
@@ -112,7 +103,3 @@ class Resource(pydantic.BaseModel):
     request: str
     content: str
     id: str = str(uuid4())
-
-
-def task_with_empty_recall(task: Task) -> TaskWithSolutionRecall:
-    return TaskWithSolutionRecall(task=task.task, context=task.context, solution_recall="")

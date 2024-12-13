@@ -4,7 +4,7 @@ from typing import Literal
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, AnyMessage
 from langchain_openai import ChatOpenAI
 
-from tool.models import TaskWithSolutionRecall as _TaskWithSolutionRecall, Solution as _Solution
+from tool.models import Solution as _Solution
 from tool.memory.solution_db import get_solution_database as _get_database
 
 
@@ -45,22 +45,22 @@ class Recaller:
         self._model = ChatOpenAI(model=openai_model)
 
     def recall(self, empty_solution: _Solution) -> _Solution:
-        """Recall the solution from the memory and pick the most relevant. If none of the recalled solutions is relevant, return the empty solution."""
+        """Recall the solution from the memory and pick the most relevant. If none of the recalled solutions is relevant, return an empty solution."""
         solutions = self._db.get_solutions(empty_solution.context, empty_solution.task, k=3)
         picked = self._pick_solution(empty_solution.task, empty_solution.context, solutions)
         return picked
 
     def recalled_or_new(
         self,
-        task_with_solution_recall: _TaskWithSolutionRecall,
+        solution_after_recall_attempt: _Solution,
     ) -> Literal["recalled", "new"]:
         """Determine if the further path in the graph should go through the recalled or new solution."""
-        task = task_with_solution_recall
+        s = solution_after_recall_attempt
         result = self._model.invoke(
             [
                 SystemMessage(content=SOLUTION_OK_PROMPT),
                 HumanMessage(
-                    content=f"Task: {task.task}\nContext: {task.context}\nSolution recall: {task.solution_recall}"
+                    content=f"Task: {s.task}\nContext: {s.context}\nSolution recall: {s.solution}"
                 ),
             ]
         )

@@ -3,7 +3,7 @@ import json
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from tool.models import Solution, TaskWithSolutionRecall
+from tool.models import Solution
 
 
 SOLUTION_REQUIREMENT_PROMPT = """
@@ -22,12 +22,12 @@ Do not write anything else.
 _model = ChatOpenAI(model="gpt-4o-mini")
 
 
-def get_requirements(task_with_recall: TaskWithSolutionRecall) -> Solution:
-    task_str = f"Task: {task_with_recall.task}\nContext: {task_with_recall.context}"
+def get_requirements(empty_solution: Solution) -> Solution:
+    task_str = f"Task: {empty_solution.task}\nContext: {empty_solution.context}"
     messages = [SystemMessage(content=SOLUTION_REQUIREMENT_PROMPT), HumanMessage(content=task_str)]
     result = _model.invoke(messages)
     return Solution(
-        task=task_with_recall.task,
-        context=task_with_recall.context,
+        task=empty_solution.task,
+        context=empty_solution.context,
         requirements=list(json.loads(str(result.content))),
     )

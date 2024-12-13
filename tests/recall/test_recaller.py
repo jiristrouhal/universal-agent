@@ -7,17 +7,15 @@ from tool.recaller import Recaller
 from tool.models import Solution
 
 
-TEST_DB_PATH = os.path.dirname(__file__) + f"/test_data{uuid4()}"
-
-
 class Test_Recaller(unittest.TestCase):
 
     def setUp(self) -> None:
-        if os.path.exists(TEST_DB_PATH):
-            shutil.rmtree(TEST_DB_PATH, ignore_errors=True)
-        self.recaller = Recaller(TEST_DB_PATH)
+        self.db_path = os.path.dirname(__file__) + f"/test_data{uuid4()}"
+        if os.path.exists(self.db_path):
+            shutil.rmtree(self.db_path, ignore_errors=True)
+        self.recaller = Recaller(self.db_path)
 
-    def test_recall(self):
+    def test_empty_solution_db_yields_empty_solution(self):
         empty_solution = Solution(
             task="Give me a code returning the geometric average of a list of floats.",
             context="I want to build library of unusual mathematical functions.",
@@ -25,10 +23,32 @@ class Test_Recaller(unittest.TestCase):
         recalled_solution = self.recaller.recall(empty_solution)
         self.assertEqual(recalled_solution, empty_solution)
 
+    def test_single_relevant_solution_is_recalled(self):
+        self.recaller._db.add_solution(
+            Solution(
+                task="Give me a code returning the geometric average of a list of floats.",
+                context="I want to build library of unusual mathematical functions.",
+                solution="def geometric_average(lst):\n    return sum(lst) ** (1 / len(lst))",
+            )
+        )
+        empty_solution = Solution(
+            task="Give me a code returning the geometric average of a list of floats.",
+            context="I want to build library of unusual mathematical functions.",
+        )
+        recalled_solution = self.recaller.recall(empty_solution)
+        self.assertEqual(
+            recalled_solution,
+            Solution(
+                task="Give me a code returning the geometric average of a list of floats.",
+                context="I want to build library of unusual mathematical functions.",
+                solution="def geometric_average(lst):\n    return sum(lst) ** (1 / len(lst))",
+            ),
+        )
+
     def tearDown(self):
-        if os.path.exists(TEST_DB_PATH):
-            shutil.rmtree(TEST_DB_PATH, ignore_errors=True)
+        if os.path.exists(self.db_path):
+            shutil.rmtree(self.db_path, ignore_errors=True)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()

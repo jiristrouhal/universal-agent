@@ -62,5 +62,5 @@ def is_odd(n: int) -> bool:
         print(test.critique_of_last_run)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()

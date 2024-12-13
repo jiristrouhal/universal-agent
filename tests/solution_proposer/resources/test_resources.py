@@ -64,5 +64,5 @@ class Test_Simple_Tasks(unittest.TestCase):
             shutil.rmtree(TEST_RESOURCE_DB_PATH, ignore_errors=True)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()

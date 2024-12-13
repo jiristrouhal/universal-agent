@@ -33,5 +33,5 @@ class Test_Text_Validator(unittest.TestCase):
             print("\n")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()

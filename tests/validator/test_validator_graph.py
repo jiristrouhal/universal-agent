@@ -54,5 +54,5 @@ class Test_Validator_Graph(unittest.TestCase):
         pprint(result)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()
