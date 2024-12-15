@@ -5,13 +5,13 @@ import dotenv
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import HumanMessage, BaseMessage
 
-from tool.task_parser import parse_task
+from tool.parsers import task_parser
 from tool.proposer.requirements import get_requirements
 from tool.proposer.tests import get_tests
 from tool.proposer.structure import draft_solution
 from tool.proposer import Proposer
 from tool.proposer.resources import ResourceManager
-from tool.recaller import Recaller
+from tool.memory.recaller import Recaller
 from tool.models import State, Solution, Solution
 
 dotenv.load_dotenv()
@@ -23,7 +23,7 @@ info_manager = ResourceManager(db_dir_path="./data/resources")
 proposer = Proposer(db_dir_path="./data/solutions")
 
 
-builder.add_node("parse_task", parse_task)
+builder.add_node("parse_task", task_parser)
 builder.add_node("get_requirements", get_requirements)
 builder.add_node("recall", recaller.recall, input=Solution)
 builder.add_node("get_tests", get_tests)

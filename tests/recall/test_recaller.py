@@ -3,7 +3,7 @@ import os
 import shutil
 from uuid import uuid4
 
-from tool.recaller import Recaller
+from tool.memory.recaller import Recaller
 from tool.models import Solution
 
 

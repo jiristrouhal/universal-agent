@@ -10,7 +10,7 @@ task_extractor = create_extractor(model, tools=[_Solution], tool_choice="Solutio
 TASK_EXTRACTOR_PROMPT = "Extract a task with context from the following messages."
 
 
-def parse_task(state: _State) -> _Solution:
+def task_parser(state: _State) -> _Solution:
     """This function extracts a task from the messages in the state and returns it as a single message
     containing the task - an empty solution.
     """
