@@ -101,7 +101,7 @@ class Validator:
         query = f"Test description: {test.description}\nTested solution: {solution}"
         messages = [SystemMessage(content=TEST_FORM_PROMPT), HumanMessage(content=query)]
         response = str(self._model.invoke(messages).content)
-        return response
+        return "code" if response == "code" else "text"
 
     def run_test(self, test: _Test, solution: str) -> None:
         """Runs a single test on a solution."""
