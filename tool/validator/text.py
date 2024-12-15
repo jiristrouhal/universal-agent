@@ -180,30 +180,31 @@ def criticize(solution: _Solution) -> _Solution:
     return solution
 
 
-text_validator_builder = StateGraph(_Solution)
+def get_text_validator_builder() -> StateGraph:
+    text_validator_builder = StateGraph(_Solution)
+    text_validator_builder.add_node(
+        "prepareSolution_with_no_test_to_run_next", prepareSolution_with_tests_to_run
+    )
+    text_validator_builder.add_node("pick_test", pick_test)
+    text_validator_builder.add_node("implement_next_test", implement_test)
+    text_validator_builder.add_node("run_test", run_test)
+    text_validator_builder.add_node(
+        "returnSolution_with_updated_tests", returnSolution_with_updated_tests
+    )
+    text_validator_builder.add_node("critic", criticize)
 
-text_validator_builder.add_node(
-    "prepareSolution_with_no_test_to_run_next", prepareSolution_with_tests_to_run
-)
-text_validator_builder.add_node("pick_test", pick_test)
-text_validator_builder.add_node("implement_next_test", implement_test)
-text_validator_builder.add_node("run_test", run_test)
-text_validator_builder.add_node(
-    "returnSolution_with_updated_tests", returnSolution_with_updated_tests
-)
-text_validator_builder.add_node("critic", criticize)
-
-text_validator_builder.add_edge(START, "prepareSolution_with_no_test_to_run_next")
-text_validator_builder.add_edge("prepareSolution_with_no_test_to_run_next", "pick_test")
-text_validator_builder.add_conditional_edges(
-    "pick_test",
-    any_next_test,
-    path_map={
-        "end": "returnSolution_with_updated_tests",
-        "next_test": "implement_next_test",
-    },
-)
-text_validator_builder.add_edge("implement_next_test", "run_test")
-text_validator_builder.add_edge("run_test", "pick_test")
-text_validator_builder.add_edge("returnSolution_with_updated_tests", "critic")
-text_validator_builder.add_edge("critic", END)
+    text_validator_builder.add_edge(START, "prepareSolution_with_no_test_to_run_next")
+    text_validator_builder.add_edge("prepareSolution_with_no_test_to_run_next", "pick_test")
+    text_validator_builder.add_conditional_edges(
+        "pick_test",
+        any_next_test,
+        path_map={
+            "end": "returnSolution_with_updated_tests",
+            "next_test": "implement_next_test",
+        },
+    )
+    text_validator_builder.add_edge("implement_next_test", "run_test")
+    text_validator_builder.add_edge("run_test", "pick_test")
+    text_validator_builder.add_edge("returnSolution_with_updated_tests", "critic")
+    text_validator_builder.add_edge("critic", END)
+    return text_validator_builder

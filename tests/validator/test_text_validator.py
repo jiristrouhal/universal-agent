@@ -1,10 +1,8 @@
 import unittest
-
 from pprint import pprint
-from IPython.display import Image
 
 from tool.models import Solution, Test
-from tool.validator.text import text_validator_builder
+from tool.validator.text import get_text_validator_builder
 
 
 class Test_Text_Validator(unittest.TestCase):
@@ -24,9 +22,7 @@ class Test_Text_Validator(unittest.TestCase):
     )
 
     def test_text_validator(self):
-        graph = text_validator_builder.compile()
-        with open("misc/graph.png", "wb") as f:
-            f.write(Image(graph.get_graph().draw_mermaid_png()).data)
+        graph = get_text_validator_builder().compile()
         result = graph.invoke(self.TEST_SOLUTION.model_dump())
         for test in result["tests"]:
             pprint(test.model_dump())

@@ -134,30 +134,29 @@ def criticize(solution: Solution) -> Solution:
     return solution
 
 
-code_validator_builder = StateGraph(Solution)
+def get_code_validator_builder() -> StateGraph:
+    builder = StateGraph(Solution)
+    builder.add_node(
+        "prepare_solution_with_no_test_to_run_next", prepare_solution_with_tests_to_run
+    )
+    builder.add_node("pick_test", pick_test)
+    builder.add_node("implement_next_test", implement_test)
+    builder.add_node("run_test", run_test)
+    builder.add_node("return_solution_with_updated_tests", return_solution_with_updated_tests)
+    builder.add_node("critic", criticize)
 
-code_validator_builder.add_node(
-    "prepare_solution_with_no_test_to_run_next", prepare_solution_with_tests_to_run
-)
-code_validator_builder.add_node("pick_test", pick_test)
-code_validator_builder.add_node("implement_next_test", implement_test)
-code_validator_builder.add_node("run_test", run_test)
-code_validator_builder.add_node(
-    "return_solution_with_updated_tests", return_solution_with_updated_tests
-)
-code_validator_builder.add_node("critic", criticize)
-
-code_validator_builder.add_edge(START, "prepare_solution_with_no_test_to_run_next")
-code_validator_builder.add_edge("prepare_solution_with_no_test_to_run_next", "pick_test")
-code_validator_builder.add_conditional_edges(
-    "pick_test",
-    any_next_test,
-    path_map={
-        "end": "return_solution_with_updated_tests",
-        "next_test": "implement_next_test",
-    },
-)
-code_validator_builder.add_edge("implement_next_test", "run_test")
-code_validator_builder.add_edge("run_test", "pick_test")
-code_validator_builder.add_edge("return_solution_with_updated_tests", "critic")
-code_validator_builder.add_edge("critic", END)
+    builder.add_edge(START, "prepare_solution_with_no_test_to_run_next")
+    builder.add_edge("prepare_solution_with_no_test_to_run_next", "pick_test")
+    builder.add_conditional_edges(
+        "pick_test",
+        any_next_test,
+        path_map={
+            "end": "return_solution_with_updated_tests",
+            "next_test": "implement_next_test",
+        },
+    )
+    builder.add_edge("implement_next_test", "run_test")
+    builder.add_edge("run_test", "pick_test")
+    builder.add_edge("return_solution_with_updated_tests", "critic")
+    builder.add_edge("critic", END)
+    return builder

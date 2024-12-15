@@ -4,7 +4,7 @@ from pprint import pprint
 from IPython.display import Image
 
 from tool.models import Solution, Test
-from tool.validator.code import code_validator_builder
+from tool.validator.code import get_code_validator_builder
 
 
 class Test_Code_Validator(unittest.TestCase):
@@ -19,7 +19,7 @@ class Test_Code_Validator(unittest.TestCase):
             solution="""
         def calculate_gravity_acceleration(height: float, planet_mass: float) -> float:
             G = 0.49999999999
-            return G * planet_mass / (height ** 2) + 0.01
+            return G * planet_mass / (height ** 2)
         """,
             tests=[
                 Test(
@@ -28,9 +28,7 @@ class Test_Code_Validator(unittest.TestCase):
                 )
             ],
         )
-        graph = code_validator_builder.compile()
-        with open("misc/code_validator_graph.png", "wb") as f:
-            f.write(Image(graph.get_graph().draw_mermaid_png()).data)
+        graph = get_code_validator_builder().compile()
         result = graph.invoke(TEST_SOLUTION.model_dump())
         for test in result["tests"]:
             pprint(test)

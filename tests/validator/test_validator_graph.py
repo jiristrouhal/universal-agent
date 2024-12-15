@@ -1,10 +1,8 @@
 import unittest
-
 from pprint import pprint
-from IPython.display import Image
 
 from tool.models import Solution, Test
-from tool.validator.validator_graph import validator_builder
+from tool.validator.validator_graph import get_validator_builder
 
 
 class Test_Validator_Graph(unittest.TestCase):
@@ -36,21 +34,18 @@ class Test_Validator_Graph(unittest.TestCase):
             Test(description="The result for input 5 should be 6."),
             Test(description="The result for input 10 should be 11."),
             Test(description="The result for input -15 should be -14."),
+            Test(description="The result of input 0 should not be -1."),
         ],
     )
 
     def test_text_validator(self):
-        graph = validator_builder.compile()
-        with open("misc/validator_graph.png", "wb") as f:
-            f.write(Image(graph.get_graph(xray=True).draw_mermaid_png()).data)
-        result = graph.invoke(self.TEST_SOLUTION_CODE.model_dump())
+        graph = get_validator_builder().compile()
+        result = graph.invoke(self.TEST_SOLUTION_TEXT.model_dump())
         pprint(result)
 
     def test_code_validator(self):
-        graph = validator_builder.compile()
-        with open("misc/validator_graph.png", "wb") as f:
-            f.write(Image(graph.get_graph(xray=True).draw_mermaid_png()).data)
-        result = graph.invoke(self.TEST_SOLUTION_TEXT.model_dump())
+        graph = get_validator_builder().compile()
+        result = graph.invoke(self.TEST_SOLUTION_CODE.model_dump())
         pprint(result)
 
 

@@ -48,6 +48,7 @@ class Test(pydantic.BaseModel):
     description: str
     implementation: str = ""
     form: TestForm = "text"
+    last_output: str = ""
     critique_of_last_run: str = ""
     result: TestResult = "unknown"
 

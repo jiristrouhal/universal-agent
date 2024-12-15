@@ -6,7 +6,7 @@ from tool.validator import Validator
 
 class Test_Validator(unittest.TestCase):
 
-    def test_validator(self):
+    def test_text_task_validator(self):
         solution = Solution(
             context="",
             task="",
