@@ -20,6 +20,9 @@ class Test_Validator(unittest.TestCase):
                 Test(
                     description="The solution contains an information on tourism in Czech Republic."
                 ),
+                Test(
+                    description="The solution must contain an information related to some popular touristic place in Czech Republic."
+                ),
             ],
         )
         validator = Validator()

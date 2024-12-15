@@ -65,6 +65,7 @@ The test is:
 {test_description}
 
 Write questions, that will be answered by someone else. Answers to these questions will verify the solution.
+If the question is answered positively, the test passes.
 
 Example 1:
 The test is:
@@ -104,9 +105,10 @@ Test implementation: ...
 Test result: ...
 
 Please, provide me with a critique of the solution. The critique should contain
-- any error that occured, if applicable,
-- place in the solution, where the error is,
-- a single-sentence suggestion, how to fix the error.
+- place in the solution, where the error is, if applicable
+- a single-sentence suggestion, how to fix the error, if applicable.
+
+Test passes if the answer to a question is positive.
 
 If all the answers received positive responses, write also "TEST_PASSED".
 
