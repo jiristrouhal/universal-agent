@@ -3,24 +3,24 @@ import shutil
 import unittest
 import uuid
 
-from tool import Assistant
+from tool.solver import Solver
 
 
-class Test_Task_Solving_And_Validation(unittest.TestCase):
+class Test_Coding_Task(unittest.TestCase):
 
     def setUp(self):
         self.memory_path = os.path.dirname(__file__) + f"/test_data_{uuid.uuid4()}"
         if os.path.exists(self.memory_path):
             shutil.rmtree(self.memory_path, ignore_errors=True)
-        self.assistant = Assistant(self.memory_path)
+        self.solver = Solver(self.memory_path)
 
     def test_print_graph(self):
-        self.assistant.print_graph_png(os.path.dirname(__file__), "tool")
+        self.solver.print_graph_png(os.path.dirname(__file__), "solver")
 
     def test_geometric_mean(self):
         query = "Give me a code returning the geometric average of a list of floats for my library of unusual mathematical functions."
-        result = self.assistant.invoke(query)
-        # self.assertIn("def ", result.content)
+        result = self.solver.invoke(query)
+        self.assertIn("def ", result.content)
         print(result)
 
     def tearDown(self):
