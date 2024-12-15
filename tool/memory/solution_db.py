@@ -25,8 +25,9 @@ class SolutionDB:
         solution.id = id_
         return solution
 
-    def get_solutions(self, context: str, task: str, k: int = 3) -> list[_Solution]:
-        query = f"Context: {context}\nTask: {task}"
+    def get_solutions(self, task: str, requirements: list[str], k: int = 3) -> list[_Solution]:
+        requirement_str = "\n".join(requirements)
+        query = f"Task: {task}\nRequirements: {requirement_str}"
         return [
             _Solution(**json.loads(d.metadata["json"]))
             for d in self._db.similarity_search(query, k=k)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Literal
+import json
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, AnyMessage
 from langchain_openai import ChatOpenAI
@@ -14,14 +15,18 @@ You are a helpful assistant, that analyzes the user's request and provides the m
 Look on the given task asked in given context and assess the best solution from the list of solutions to similar problems from the past.
 It is possible none of them are relevant, in that case, you respond with a message that there is no relevant solution.
 
-Task:\n{task}
-Context:\n{context}
-Recalled solutions:\n{solutions}
-
 Your answer must be in the following format:
-
 Reasoning: Here you think step by step about Recalled solutions with respect to the task and context.
 Best solution: Here you choose the best solution. Do not write anything else. It is possible that none of the solutions is relevant.
+
+The input information for you is:
+
+Task:\n{task}
+Context:\n{context}
+Solution requirements: {requirements}
+Recalled solutions:\n{solutions}
+
+You can start now.
 """
 
 
@@ -38,6 +43,23 @@ You will respond with 'True' if the solution is nonempty and evaluated as valid,
 """
 
 
+USABLE_SOLUTION_PROMPT = """
+You are a helpful assistant that determines if some of the solutions can be used directly given list of requirements and the task.
+
+I will provide to you the following information:
+
+Task: ...
+Context: ...
+Solution requirements: ...
+
+Recalled solutions:
+...
+
+You must pick the first Recalled solution, whose requirements contain all the Solution requirements.
+You will respond with an index of that solution. If none of the solutions is relevant, return 'None'.
+"""
+
+
 class Recaller:
 
     def __init__(self, db_dir_path: str, openai_model: str = "gpt-4o-mini") -> None:
@@ -46,51 +68,76 @@ class Recaller:
 
     def recall(self, empty_solution: _Solution) -> _Solution:
         """Recall the solution from the memory and pick the most relevant. If none of the recalled solutions is relevant, return an empty solution."""
-        solutions = self._db.get_solutions(empty_solution.context, empty_solution.task, k=3)
-        picked = self._pick_solution(empty_solution.task, empty_solution.context, solutions)
-        return picked
+        assert empty_solution.solution == "", "The solution must be empty."
+        assert empty_solution.task != "", "The task must be provided."
+        assert empty_solution.context != "", "The context must be provided."
+        assert len(empty_solution.requirements) > 0, "The requirements must be provided."
+        solutions = self._db.get_solutions(empty_solution.task, empty_solution.requirements, k=3)
+        directly_usable_solution_index = self._pick_directly_usable_solution(
+            empty_solution, solutions
+        )
+        if directly_usable_solution_index is not None:
+            solution = solutions[directly_usable_solution_index]
+            solution.task = empty_solution.task
+            solution.context = empty_solution.context
+            solution.tests = empty_solution.tests
+            solution.requirements = empty_solution.requirements
+            return solution
+        else:
+            picked = self._pick_solutions(empty_solution, solutions)
+            picked_solutions_contents = ",\n".join(s.solution for s in picked)
+            empty_solution.similar_solutions = picked_solutions_contents
+            return empty_solution
 
     def recalled_or_new(
         self,
-        solution_after_recall_attempt: _Solution,
+        solution_after_recall: _Solution,
     ) -> Literal["recalled", "new"]:
         """Determine if the further path in the graph should go through the recalled or new solution."""
-        s = solution_after_recall_attempt
-        result = self._model.invoke(
-            [
-                SystemMessage(content=SOLUTION_OK_PROMPT),
-                HumanMessage(
-                    content=f"Task: {s.task}\nContext: {s.context}\nSolution recall: {s.solution}"
-                ),
-            ]
-        )
-        if "True" in result.content:
+        if solution_after_recall.solution:
             return "recalled"
         return "new"
 
-    def _recalled_solution_description(self, solution: _Solution) -> str:
-        return (
-            f"Task: {solution.task}\nContext: {solution.context}\nSolution:\n{solution.solution}\n"
+    def _pick_directly_usable_solution(
+        self, empty_solution: _Solution, solutions: list[_Solution]
+    ) -> int | None:
+        query = (
+            f"Task: {empty_solution.task}\n"
+            f"Context: {empty_solution.context}\n"
+            f"Solution requirements: {', '.join(empty_solution.requirements)}\n"
+            f"Recalled solutions: {', '.join(self._recalled_solution_description(s) for s in solutions)}"
         )
+        messages = [SystemMessage(content=USABLE_SOLUTION_PROMPT), HumanMessage(content=query)]
+        response = str(self._model.invoke(messages).content)
+        if response.isdigit():
+            return int(response)
+        return None
 
-    def _pick_solution(self, task: str, context: str, solutions: list[_Solution]) -> _Solution:
+    def _recalled_solution_description(self, solution: _Solution) -> str:
+        return f"Task: {solution.task}\nContext: {solution.context}\nRequirements: {', '.join(solution.requirements)}"
+
+    def _pick_solutions(
+        self, empty_solution: _Solution, solutions: list[_Solution]
+    ) -> list[_Solution]:
         solutions_str = ""
         for i, solution in enumerate(solutions):
-            solutions_str += f"{i}. {self._recalled_solution_description(solution)}\n"
+            solutions_str += f"Solution {i}:\n{self._recalled_solution_description(solution)}\n"
+
+        requirements_str = ", ".join(empty_solution.requirements)
         formatted_system_prompt = SOLUTION_RECALL_PROMPT.format(
-            task=task, context=context, solutions=solutions_str
+            task=empty_solution.task,
+            context=empty_solution.context,
+            requirements=requirements_str,
+            solutions=solutions_str,
         )
         messages: list[AnyMessage] = [SystemMessage(content=formatted_system_prompt)]
         picked_solution = str(self._model.invoke(messages).content)
         messages.append(AIMessage(content=picked_solution))
         messages.append(
             HumanMessage(
-                content="What is then the index of the best solution? Do not write anything else. Return 'None' if none of the solutions is relevant."
+                content="What are the indices of the useful solutions? Return a list of integers separated by commas. If none of the solutions is relevant, return an empty list."
             )
         )
-        result = str(self._model.invoke(messages))
-        if result.isdigit():
-            return solutions[int(result)]
-        else:
-            # Return the empty solution if none of the solutions is relevant.
-            return _Solution(task=task, context=context)
+        result = str(self._model.invoke(messages).content)
+        indices = [int(i) for i in json.loads(result) if str(i).isdigit()]
+        return [solutions[int(i)] for i in indices if 0 <= i < len(solutions)]

@@ -19,6 +19,10 @@ class Test_Recaller(unittest.TestCase):
         empty_solution = Solution(
             task="Give me a code returning the geometric average of a list of floats.",
             context="I want to build library of unusual mathematical functions.",
+            requirements=[
+                "The function takes only positive floats.",
+                "The function returns zero for a list without elements.",
+            ],
         )
         recalled_solution = self.recaller.recall(empty_solution)
         self.assertEqual(recalled_solution, empty_solution)
@@ -29,20 +33,45 @@ class Test_Recaller(unittest.TestCase):
                 task="Give me a code returning the geometric average of a list of floats.",
                 context="I want to build library of unusual mathematical functions.",
                 solution="def geometric_average(lst):\n    return sum(lst) ** (1 / len(lst))",
+                requirements=[
+                    "The function takes only positive floats.",
+                ],
             )
         )
-        empty_solution = Solution(
-            task="Give me a code returning the geometric average of a list of floats.",
-            context="I want to build library of unusual mathematical functions.",
-        )
-        recalled_solution = self.recaller.recall(empty_solution)
-        self.assertEqual(
-            recalled_solution,
+        self.recaller._db.add_solution(
             Solution(
                 task="Give me a code returning the geometric average of a list of floats.",
                 context="I want to build library of unusual mathematical functions.",
                 solution="def geometric_average(lst):\n    return sum(lst) ** (1 / len(lst))",
+                requirements=[
+                    "The function takes only positive floats.",
+                    "The function returns zero for an empty list.",
+                    "The function returns zero for an list of zeros.",
+                ],
             ),
+        )
+        empty_solution = Solution(
+            task="Give me a code returning the geometric average of a list of floats.",
+            context="I want to build library of unusual mathematical functions.",
+            requirements=[
+                "The function takes only positive floats.",
+                "The function returns zero for a list without elements.",
+            ],
+        )
+        recalled = self.recaller.recall(empty_solution)
+        self.assertEqual(
+            recalled.context, "I want to build library of unusual mathematical functions."
+        )
+        self.assertEqual(
+            recalled.task, "Give me a code returning the geometric average of a list of floats."
+        )
+        self.assertEqual(len(recalled.requirements), 2)
+        self.assertEqual(
+            recalled.requirements,
+            [
+                "The function takes only positive floats.",
+                "The function returns zero for a list without elements.",
+            ],
         )
 
     def tearDown(self):

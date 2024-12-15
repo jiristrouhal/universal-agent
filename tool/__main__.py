@@ -24,8 +24,8 @@ proposer = Proposer(db_dir_path="./data/solutions")
 
 
 builder.add_node("parse_task", parse_task)
-builder.add_node("recall", recaller.recall, input=Solution)
 builder.add_node("get_requirements", get_requirements)
+builder.add_node("recall", recaller.recall, input=Solution)
 builder.add_node("get_tests", get_tests)
 builder.add_node("draft_solution", draft_solution)
 builder.add_node("get_resources", info_manager.get_resources, input=Solution)
@@ -34,13 +34,13 @@ builder.add_node("print_solution", proposer.print_solution, input=Solution)
 
 
 builder.add_edge(START, "parse_task")
-builder.add_edge("parse_task", "recall")
+builder.add_edge("parse_task", "get_requirements")
+builder.add_edge("get_requirements", "recall")
 builder.add_conditional_edges(
     "recall",
     recaller.recalled_or_new,
-    {"new": "get_requirements", "recalled": "print_solution"},
+    {"new": "get_tests", "recalled": "print_solution"},
 )
-builder.add_edge("get_requirements", "get_tests")
 builder.add_edge("get_tests", "draft_solution")
 builder.add_edge("draft_solution", "get_resources")
 builder.add_edge("get_resources", "propose_solution")

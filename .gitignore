@@ -14,3 +14,4 @@ build
 dummy.*
 data
 test_data
+.sqlite3

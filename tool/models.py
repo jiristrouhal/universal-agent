@@ -29,6 +29,7 @@ class Solution(pydantic.BaseModel):
     tests: list[Test] = pydantic.Field(default_factory=list)
     form: Literal["text", "code"] = "text"
     solution: str = ""
+    similar_solutions: str = ""
     id: str = str(uuid4())
 
     def empty(self) -> bool:
@@ -36,7 +37,7 @@ class Solution(pydantic.BaseModel):
 
     @property
     def task_description(self) -> str:
-        return f"Context: {self.context}\nTask: {self.task}"
+        return f"Task: {self.task}\nRequirements: {', '.join(self.requirements)}"
 
 
 class Test(pydantic.BaseModel):
