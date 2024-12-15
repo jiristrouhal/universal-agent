@@ -28,6 +28,25 @@ class Test_Validator(unittest.TestCase):
             print(t.model_dump_json(indent=4))
             print("\n")
 
+    def test_task_for_returning_new_name_not_contained_in_given_list(self):
+        solution = Solution(
+            context="",
+            task="",
+            requirements=[],
+            solution_structure=[],
+            resources={},
+            solution="Hugo, Peter, Alice.",
+            tests=[
+                Test(description="The solution does not contain Bob."),
+                Test(description="The solution does contain Alice."),
+            ],
+        )
+        validator = Validator()
+        validator.review(solution)
+        for t in solution.tests:
+            print(t.model_dump_json(indent=4))
+            print("\n")
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

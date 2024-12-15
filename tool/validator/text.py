@@ -66,7 +66,17 @@ The test is:
 
 Write questions, that will be answered by someone else. Answers to these questions will verify the solution.
 
-For example, if the test is: "The solution must contain a sentence about the Czech Republic.", the question can be: "Does the solution contain a sentence about the Czech Republic?"
+Example 1:
+The test is:
+ "The solution must contain a sentence about the Czech Republic.",
+Question:
+ "The solution must contain a sentence about the Czech Republic. Does the solution contain a sentence about the Czech Republic?"
+
+Example 2:
+The test is:
+ "Alice not being in the list is a mistake.",
+Question:
+ "Alice not being in the list is a mistake. Is Alice in the list?"
 
 Write only the questions. Do not write anything else.
 """
