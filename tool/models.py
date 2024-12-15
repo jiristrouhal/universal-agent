@@ -8,6 +8,8 @@ from langchain_core.messages import AnyMessage
 
 
 ResourceForm = Literal["code", "text"]
+TestForm = Literal["code", "text"]
+TestResult = Literal["pass", "fail", "unknown"]
 
 
 class State(TypedDict):
@@ -45,9 +47,9 @@ class Test(pydantic.BaseModel):
 
     description: str
     implementation: str = ""
-    last_output: str = ""
+    form: TestForm = "text"
     critique_of_last_run: str = ""
-    result: Literal["pass", "fail", "unknown"] = "unknown"
+    result: TestResult = "unknown"
 
 
 class SolutionWithTestsToRun(pydantic.BaseModel):
@@ -58,7 +60,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
     solution_structure: list[str]
     tests_to_run: dict[int, Test]
     run_tests: dict[int, Test]
-    form: Literal["text", "code"] = "text"
+    form: ResourceForm = "text"
     solution: str
 
     @staticmethod
