@@ -1,6 +1,6 @@
 from __future__ import annotations
 from uuid import uuid4
-from typing import Annotated, TypedDict, Literal
+from typing import Annotated, TypedDict, Literal, ClassVar
 from operator import add
 
 import pydantic
@@ -22,6 +22,8 @@ class Solution(pydantic.BaseModel):
     """This class represents a solution to a specific task in a specific context. It is used to store the solution in the database
     with the data necessary for the solution modifications and verification, including tests, source links and the solution structure.
     """
+
+    EMPTY_RESOURCE: ClassVar[str] = "Not provided."
 
     context: str
     task: str
@@ -106,4 +108,5 @@ class Resource(pydantic.BaseModel):
     context: str
     request: str
     content: str
+    origin: str = "unknown"
     id: str = str(uuid4())

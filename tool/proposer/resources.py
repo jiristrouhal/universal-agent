@@ -17,19 +17,21 @@ I will give you the following information:
 Task: ...
 Context: ...
 Solution draft: ...
+Existing requests for sources ...
 
-Please, identify the resources of information that you used to design the solution. Respond in a form of list.
-It is possible, that for very simple solutions, there are no resources required.
-For each item, provide detailed description of the source required in the form "Give me [resource description]. I expect to get it as [form of the result/response].
-
-For example:
+Identify the resources of information that you need to design the solution. Respond in a form of list, for example:
 [
     "I need to find the definition of the term 'machine learning'. I expect to get it as a plain text.",
     "I need a Pythonic program for calculating the least common divisor. I expect to get it as a Python code snippet."
     ...
 ]
 
-Do not write anything else.
+Write only requests, that ARE NOT included in the Existing requests for sources.
+Please, follow these instructions:
+
+1) It is possible, that for very simple solutions) (simple arithmetic operations), there are no resources required.
+2) For each item, provide detailed description of the source required in the form "Give me [resource description]. I expect to get it as [form of the result/response].
+3) Do not provide any additional information. Do not write anything else.
 """
 
 
@@ -76,34 +78,33 @@ class ResourceManager:
 
     def __init__(self, db_dir_path: str, openai_model: str = "gpt-4o-mini") -> None:
         self._model = ChatOpenAI(model=openai_model)
-        _tools = [WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())]  # type: ignore
-        self._resource_provider = create_react_agent(self._model, tools=_tools)
+        _external_tools = [WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())]  # type: ignore
+        self._resource_provider = create_react_agent(self._model, tools=_external_tools)
         self._resource_db = _resource_db(db_dir_path)
 
     @property
     def db(self) -> _ResourceDB:
         return self._resource_db
 
-    def get_resources(self, solution: Solution) -> Solution:
+    def get_resources(self, solution: Solution, use_external: bool = True) -> Solution:
         query = (
             f"Task: {solution.task}\n"
             f"Context: {solution.context}\n"
             f"Solution draft: {solution.solution_structure}"
+            f"Existing requests for sources: {list(solution.resources.keys())}"
         )
         messages = [SystemMessage(_IDENTIFY_SOURCES_PROMPT), HumanMessage(query)]
-        requests_for_sources: list[str] = list(
+        requests_for_sources: list[str] = list(solution.resources.keys()) + list(
             json.loads(str(self._model.invoke(messages).content))
         )
-
-        # Get the form of solution - text or code
-        form_query = f"Query: {requests_for_sources[0]}"
-        form_messages = [SystemMessage(_RESOURCE_FORM_PROMPT), HumanMessage(form_query)]
-        form: ResourceForm = (
-            "code" if "code" in self._model.invoke(form_messages).content else "text"
-        )
-
-        requested_sources = dict.fromkeys(requests_for_sources, "Not provided")
+        requested_sources = dict.fromkeys(requests_for_sources, Solution.EMPTY_RESOURCE)
         for request in requested_sources:
+            # Get the form of solution - text or code
+            form_query = f"Query: {request}"
+            form_messages = [SystemMessage(_RESOURCE_FORM_PROMPT), HumanMessage(form_query)]
+            form: ResourceForm = (
+                "code" if "code" in self._model.invoke(form_messages).content else "text"
+            )
             results = self._resource_db.get(form=form, context=solution.context, request=request)
             for r in results:
                 answer = self._model.invoke(
@@ -120,14 +121,19 @@ class ResourceManager:
                     break
 
         for request in requested_sources:
-            if requested_sources[request] != "Not provided":
+            if requested_sources[request] != Solution.EMPTY_RESOURCE:
                 continue
             full_request = f"Task: {solution.task}\nContext: {solution.context}\nRequest: {request}"
             messages = [
                 SystemMessage(content=_GET_RESOURCE_PROMPT),
                 HumanMessage(content=full_request),
             ]
-            result = self._resource_provider.invoke({"messages": messages})["messages"][-1].content
+            if use_external:
+                result = self._resource_provider.invoke({"messages": messages})["messages"][
+                    -1
+                ].content
+            else:
+                result = self._model.invoke(messages).content
             requested_sources[request] = str(result)
 
         solution.resources.update(requested_sources)
