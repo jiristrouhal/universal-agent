@@ -68,9 +68,18 @@ I will provide to you the following information:
 Task: This is the task, which solution requires the resource I am asking for.
 Context: This is the context of the task.
 Request: This is the request for the specific information or resource I need.
-Recalled resource: This is the resource that was recalled from memory.
+Memory: This is the resource that was recalled from memory.
 
-You will respond with 'True' if the solution is nonempty and evaluated as valid, 'False' otherwise. Do not write anything else.
+You will respond in the following way:
+Reasoning: Here you provide your thoughts on the relevance of the recalled resource to the task in the given context.
+Relevance: 'True' if the solution is nonempty and evaluated as relevant to the task in given context
+'False' otherwise.
+
+When assessing relevance, follow these rules:
+1) Assess only if the resource contains the requested information.
+2) Ignore the factual correctness of information.
+
+Do not write anything else.
 """
 
 
@@ -79,7 +88,7 @@ class ResourceManager:
     def __init__(self, db_dir_path: str, openai_model: str = "gpt-4o-mini") -> None:
         self._model = ChatOpenAI(model=openai_model)
         _external_tools = [WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())]  # type: ignore
-        self._resource_provider = create_react_agent(self._model, tools=_external_tools)
+        self._provider = create_react_agent(self._model, tools=_external_tools)
         self._resource_db = _resource_db(db_dir_path)
 
     @property
@@ -87,9 +96,10 @@ class ResourceManager:
         return self._resource_db
 
     def get_resources(self, solution: Solution, use_external: bool = True) -> Solution:
+        task, context = solution.task, solution.context
         query = (
-            f"Task: {solution.task}\n"
-            f"Context: {solution.context}\n"
+            f"Task: {task}\n"
+            f"Context: {context}\n"
             f"Solution draft: {solution.solution_structure}"
             f"Existing requests for sources: {list(solution.resources.keys())}"
         )
@@ -97,44 +107,60 @@ class ResourceManager:
         requests_for_sources: list[str] = list(solution.resources.keys()) + list(
             json.loads(str(self._model.invoke(messages).content))
         )
-        requested_sources = dict.fromkeys(requests_for_sources, Solution.EMPTY_RESOURCE)
-        for request in requested_sources:
+        requested_resources = dict.fromkeys(requests_for_sources, Solution.EMPTY_RESOURCE)
+        self._recall_resources_from_memory(task, context, requested_resources)
+        self._get_new_requested_resources(task, context, requested_resources, use_external)
+        solution.resources.update(requested_resources)
+        return solution
+
+    def _get_new_requested_resources(
+        self,
+        task: str,
+        context: str,
+        requested_resources: dict[str, str],
+        use_external: bool = True,
+    ) -> None:
+        for request in requested_resources:
+            if requested_resources[request] != Solution.EMPTY_RESOURCE:
+                continue
+            full_request = f"Task: {task}\nContext: {context}\nRequest: {request}"
+            messages = [
+                SystemMessage(content=_GET_RESOURCE_PROMPT),
+                HumanMessage(content=full_request),
+            ]
+            if use_external:
+                result = self._provider.invoke({"messages": messages})["messages"][-1].content
+            else:
+                result = self._model.invoke(messages).content
+            requested_resources[request] = str(result)
+
+    def memory_relevance(self, task: str, context: str, request: str, memory: str) -> str:
+        answer = self._model.invoke(
+            [
+                SystemMessage(content=_ASSESS_RECALLED_RESOURCES_PROMPT),
+                HumanMessage(
+                    content=f"Task: {task}\nContext: {context}\nRequest: {request}\nMemory: {memory}"
+                ),
+            ]
+        ).content
+        return str(answer)
+
+    def _recall_resources_from_memory(
+        self,
+        task: str,
+        context: str,
+        requested_resources: dict[str, str],
+    ) -> None:
+        for request in requested_resources:
             # Get the form of solution - text or code
             form_query = f"Query: {request}"
             form_messages = [SystemMessage(_RESOURCE_FORM_PROMPT), HumanMessage(form_query)]
             form: ResourceForm = (
                 "code" if "code" in self._model.invoke(form_messages).content else "text"
             )
-            results = self._resource_db.get(form=form, context=solution.context, request=request)
-            for r in results:
-                answer = self._model.invoke(
-                    [
-                        SystemMessage(content=_ASSESS_RECALLED_RESOURCES_PROMPT),
-                        HumanMessage(
-                            content=f"Task: {solution.task}\nContext: {solution.context}\nSolution recall: {r.content}"
-                        ),
-                    ]
-                ).content
-                if "True" in str(answer):
+            results = self._resource_db.get(form=form, context=context, request=request)
+            for result in results:
+                if "True" in self.memory_relevance(task, context, request, result.content):
                     print("Recalled resource is acceptable")
-                    requested_sources[request] = r.content
+                    requested_resources[request] = result.content
                     break
-
-        for request in requested_sources:
-            if requested_sources[request] != Solution.EMPTY_RESOURCE:
-                continue
-            full_request = f"Task: {solution.task}\nContext: {solution.context}\nRequest: {request}"
-            messages = [
-                SystemMessage(content=_GET_RESOURCE_PROMPT),
-                HumanMessage(content=full_request),
-            ]
-            if use_external:
-                result = self._resource_provider.invoke({"messages": messages})["messages"][
-                    -1
-                ].content
-            else:
-                result = self._model.invoke(messages).content
-            requested_sources[request] = str(result)
-
-        solution.resources.update(requested_sources)
-        return solution

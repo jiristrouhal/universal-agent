@@ -52,13 +52,22 @@ class Test_Collecting_Missing_Resources(unittest.TestCase):
         self.assertEqual(len(solution.resources) > 0)  # At least one resource is added
         print(solution.resources)
 
+    def test_assessing_memory_relevance(self) -> None:
+        result = self.resource_manager.memory_relevance(
+            task="Find the speed of light",
+            context="Physics",
+            request="I need to find the speed of light. I expect response in m/s",
+            memory="Speed of light is 123456789 m/s",
+        )
+        print(result)
+
     def test_resource_already_present_in_the_memory_is_retrieved(self):
         self.resource_manager.db.add(
             resource=Resource(
                 form="text",
                 context="Physics",
                 request="I need to find the speed of light. I expect response in m/s",
-                content="123456789 m/s",
+                content="The speed of light is 123456789 m/s",
                 origin="test",
             )
         )
