@@ -24,11 +24,13 @@ Repond with only a python code wihout any code block marks. The reponse will in 
 - the pasted solution code,
 - the test code,
 - call of the test code.
-The result must be self-contained and executable in python REPL.
 
-Add necessary comments explaining the test code. At the end, there must be a print statement printing the test result.
-Use ordinary assert statements, avoid using pytest or unittest. Add string after asserted statement to indicate the test description.
-When asseting equality of two floats, allow for a small error margin.
+Follow these guidelines:
+1) The result must be self-contained and executable in python REPL.
+2) Always place the solution code in front of the test code.
+3) Add necessary comments explaining the test code. At the end, there must be a print statement printing the test result.
+4) Use ordinary assert statements, avoid using pytest or unittest. Add string after asserted statement to indicate the test description. The string must describe, what was the expected result.
+5) When assesing equality of two floats, allow for a small error margin.
 
 Do not write anything else.
 """

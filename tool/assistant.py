@@ -2,6 +2,8 @@ import os
 
 from IPython.display import Image
 from langgraph.graph import StateGraph as _StateGraph, START, END
+from langgraph.graph.state import CompiledGraph
+from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from langchain_openai import ChatOpenAI
 from langchain.tools import Tool
@@ -14,12 +16,10 @@ from tool.parsers import task_parser
 
 CHAT_MODEL = "gpt-4o-mini"
 CHAT_PROMPT = """
-You are a helpful and brief assistant, that accepts helps me to formulate a task and when it is formulated, you call a tool to provide solution.
+You are a helpful and brief assistant, that helps me to formulate a task and when it is formulated, you call a tool to provide solution.
 
-Think about my input and ask me for any additional info if necessary. Call a tool if the task is more complex, includes specific knowledge or
+Think about my input and ask me for any additional info if necessary. Call a tool after the task is well-formulated.
 requires running and testing code.
-
-Respond briefly.
 """
 
 
@@ -39,29 +39,29 @@ class Assistant:
         builder.add_edge("validate", END)
         self._graph = builder.compile()
 
-    def chat(self) -> None:
-        chat = ChatOpenAI(model=CHAT_MODEL)
-        tool = Tool(
-            "think-hard",
-            self.invoke,
-            description=(
-                "This method accepts a task, thinks about the solution and returns it. It is recommended to include both task and a context."
-                "Formulate task as a plain text."
-            ),
-        )
-        chat_with_tools = chat.bind_tools([tool])
-        messages: list[BaseMessage] = [SystemMessage(CHAT_PROMPT)]
+    def invoke_in_loop(self, task: str = "") -> AIMessage:
         while True:
-            user_message = input("Me: ")
-            if not user_message.strip():
-                continue
-            messages.append(HumanMessage(content=user_message))
-            response = chat_with_tools.invoke(messages)
-            print("Tool:", str(response.content))
-            messages.append(response)
+            if not task.strip():
+                task = input("Please, write me a task: ")
+            else:
+                result = self.invoke(task).content
+                print(result)
+                task = ""
+
+    def _invoke_and_append_result(
+        self, graph: CompiledGraph, messages: list[BaseMessage], human_message: str
+    ) -> None:
+        messages.append(HumanMessage(content=human_message))
+        response: BaseMessage = graph.invoke({"messages": messages})["messages"][-1]
+        print("Tool:", str(response.content))
+        messages.append(response)
 
     def invoke(self, task: str) -> AIMessage:
-        print(f"Processing task: {task}.")
+        """This method accepts a task, thinks about the solution and returns it.
+
+        It is recommended to include both task and a context. Formulate task as a plain text.
+        """
+        print(f"Processing task: {task}")
         builder = _StateGraph(_State)
         builder.add_node("parse_task", task_parser, input=_State)
         builder.add_node("core", self._graph, input=_Solution)

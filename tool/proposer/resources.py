@@ -84,11 +84,11 @@ class ResourceManager:
     def db(self) -> _ResourceDB:
         return self._resource_db
 
-    def get_resources(self, draft: Solution) -> Solution:
+    def get_resources(self, solution: Solution) -> Solution:
         query = (
-            f"Task: {draft.task}\n"
-            f"Context: {draft.context}\n"
-            f"Solution draft: {draft.solution_structure}"
+            f"Task: {solution.task}\n"
+            f"Context: {solution.context}\n"
+            f"Solution draft: {solution.solution_structure}"
         )
         messages = [SystemMessage(_IDENTIFY_SOURCES_PROMPT), HumanMessage(query)]
         requests_for_sources: list[str] = list(
@@ -104,13 +104,13 @@ class ResourceManager:
 
         requested_sources = dict.fromkeys(requests_for_sources, "Not provided")
         for request in requested_sources:
-            results = self._resource_db.get(form=form, context=draft.context, request=request)
+            results = self._resource_db.get(form=form, context=solution.context, request=request)
             for r in results:
                 answer = self._model.invoke(
                     [
                         SystemMessage(content=_ASSESS_RECALLED_RESOURCES_PROMPT),
                         HumanMessage(
-                            content=f"Task: {draft.task}\nContext: {draft.context}\nSolution recall: {r.content}"
+                            content=f"Task: {solution.task}\nContext: {solution.context}\nSolution recall: {r.content}"
                         ),
                     ]
                 ).content
@@ -122,7 +122,7 @@ class ResourceManager:
         for request in requested_sources:
             if requested_sources[request] != "Not provided":
                 continue
-            full_request = f"Task: {draft.task}\nContext: {draft.context}\nRequest: {request}"
+            full_request = f"Task: {solution.task}\nContext: {solution.context}\nRequest: {request}"
             messages = [
                 SystemMessage(content=_GET_RESOURCE_PROMPT),
                 HumanMessage(content=full_request),
@@ -130,11 +130,5 @@ class ResourceManager:
             result = self._resource_provider.invoke({"messages": messages})["messages"][-1].content
             requested_sources[request] = str(result)
 
-        return Solution(
-            task=draft.task,
-            context=draft.context,
-            requirements=draft.requirements,
-            tests=draft.tests,
-            solution_structure=draft.solution_structure,
-            resources=requested_sources,
-        )
+        solution.resources.update(requested_sources)
+        return solution

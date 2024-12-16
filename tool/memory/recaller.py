@@ -72,22 +72,26 @@ class Recaller:
         assert empty_solution.task != "", "The task must be provided."
         assert empty_solution.context != "", "The context must be provided."
         assert len(empty_solution.requirements) > 0, "The requirements must be provided."
-        solutions = self._db.get_solutions(empty_solution.task, empty_solution.requirements, k=3)
+        solutions: list[_Solution] = self._db.get_solutions(
+            empty_solution.task, empty_solution.context, empty_solution.requirements, k=3
+        )
         directly_usable_solution_index = self._pick_directly_usable_solution(
             empty_solution, solutions
         )
+        # check solution form
         if directly_usable_solution_index is not None:
             solution = solutions[directly_usable_solution_index]
-            solution.task = empty_solution.task
-            solution.context = empty_solution.context
-            solution.tests = empty_solution.tests
-            solution.requirements = empty_solution.requirements
-            return solution
-        else:
-            picked = self._pick_solutions(empty_solution, solutions)
-            picked_solutions_contents = ",\n".join(s.solution for s in picked)
-            empty_solution.similar_solutions = picked_solutions_contents
-            return empty_solution
+            if solution.form == empty_solution.form:
+                solution.task = empty_solution.task
+                solution.context = empty_solution.context
+                solution.tests = empty_solution.tests
+                solution.requirements = empty_solution.requirements
+                return solution
+
+        picked = self._pick_solutions(empty_solution, solutions)
+        picked_solutions_contents = ",\n".join(s.solution for s in picked)
+        empty_solution.similar_solutions = picked_solutions_contents
+        return empty_solution
 
     def recalled_or_new(
         self,
@@ -101,11 +105,17 @@ class Recaller:
     def _pick_directly_usable_solution(
         self, empty_solution: _Solution, solutions: list[_Solution]
     ) -> int | None:
+
+        recalled_solutions_str = "\n"
+        for k in range(len(solutions)):
+            recalled_solutions_str += f"{k:2}. Solution:\n" + self._recalled_solution_description(
+                solutions[k]
+            )
         query = (
             f"Task: {empty_solution.task}\n"
             f"Context: {empty_solution.context}\n"
             f"Solution requirements: {', '.join(empty_solution.requirements)}\n"
-            f"Recalled solutions: {', '.join(self._recalled_solution_description(s) for s in solutions)}"
+            f"Recalled solutions: {recalled_solutions_str}"
         )
         messages = [SystemMessage(content=USABLE_SOLUTION_PROMPT), HumanMessage(content=query)]
         response = str(self._model.invoke(messages).content)

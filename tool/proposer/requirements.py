@@ -38,8 +38,5 @@ def get_requirements(empty_solution: Solution) -> Solution:
     messages = [SystemMessage(content=SOLUTION_REQUIREMENT_PROMPT), HumanMessage(content=task_str)]
     result = _model.invoke(messages)
     reqs = list(json.loads(str(result.content)))
-    return Solution(
-        task=empty_solution.task,
-        context=empty_solution.context,
-        requirements=reqs,
-    )
+    empty_solution.requirements = reqs
+    return empty_solution

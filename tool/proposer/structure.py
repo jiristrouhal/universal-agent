@@ -28,19 +28,14 @@ Do not write anything else.
 _model = ChatOpenAI(model="gpt-4o-mini")
 
 
-def draft_solution(task_with_tests: Solution) -> Solution:
+def draft_solution(solution: Solution) -> Solution:
     task_str = (
-        f"Task: {task_with_tests.task}\n"
-        f"Context: {task_with_tests.context}\n"
-        f"Requirements: {task_with_tests.requirements}\n"
-        f"Tests: {task_with_tests.tests}"
+        f"Task: {solution.task}\n"
+        f"Context: {solution.context}\n"
+        f"Requirements: {solution.requirements}\n"
+        f"Tests: {solution.tests}"
     )
     messages = [SystemMessage(content=SOLUTION_PROMPT), HumanMessage(content=task_str)]
     result = _model.invoke(messages)
-    return Solution(
-        task=task_with_tests.task,
-        context=task_with_tests.context,
-        requirements=task_with_tests.requirements,
-        tests=task_with_tests.tests,
-        solution_structure=list(json.loads(str(result.content))),
-    )
+    solution.solution_structure = list(json.loads(str(result.content)))
+    return solution

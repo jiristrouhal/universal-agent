@@ -19,7 +19,10 @@ Please, follow these guidelines:
 2) Use only the provided Resources for building the solution. Do not make any assumptions or ad-hoc information retrievals.
 3) All points from the Solution structure must be addressed in the solution.
 4) The solution must pass all the Tests.
-5) Write only the solution, helper functions and imports. Do not write any additional code.
+5) Write only the solution, helper functions and imports.
+6) DO NOT write tests into the solution.
+7) Do not write any additional information or code.
+8) When writing function, provide type hints if applicable.
 
 You should respond to me only with the solution. Do not write anything else.
 """
@@ -31,27 +34,19 @@ class Proposer:
         self._db = _get_database(db_dir_path)
         self._model = ChatOpenAI(model=openai_model)
 
-    def propose_solution(self, draft: _Solution) -> _Solution:
+    def propose_solution(self, solution: _Solution) -> _Solution:
         """Propose a solution to the task and store it in the solution database."""
         query = (
-            f"Context: {draft.context}\n"
-            f"Task: {draft.task}\n"
-            f"Tests: {draft.tests}\n"
-            f"Solution structure: {draft.solution_structure}"
+            f"Context: {solution.context}\n"
+            f"Task: {solution.task}\n"
+            f"Tests: {solution.tests}\n"
+            f"Solution structure: {solution.solution_structure}"
         )
         messages = [SystemMessage(content=_PROPOSE_SOLUTION_PROMPT), HumanMessage(content=query)]
-        solution = str(self._model.invoke(messages).content)
-        solution_obj = _Solution(
-            task=draft.task,
-            context=draft.context,
-            requirements=draft.requirements,
-            resources=draft.resources,
-            solution_structure=draft.solution_structure,
-            tests=draft.tests,
-            solution=solution,
-        )
-        self._db.add_solution(solution_obj)
-        return solution_obj
+        solution_content = str(self._model.invoke(messages).content)
+        solution.solution = solution_content
+        self._db.add_solution(solution)
+        return solution
 
     def print_solution(self, solution: _Solution) -> _State:
         return _State(messages=[AIMessage(content=solution.solution)])

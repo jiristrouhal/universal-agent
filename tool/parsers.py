@@ -7,7 +7,9 @@ from tool.models import Solution as _Solution, State as _State
 
 model = ChatOpenAI(name="gpt-4o-mini")
 task_extractor = create_extractor(model, tools=[_Solution], tool_choice="Solution")
-TASK_EXTRACTOR_PROMPT = "Extract a task with context from the following messages."
+TASK_EXTRACTOR_PROMPT = (
+    "Extract a task context and the required form of solution from the following messages."
+)
 
 
 def task_parser(state: _State) -> _Solution:
@@ -15,5 +17,5 @@ def task_parser(state: _State) -> _Solution:
     containing the task - an empty solution.
     """
     messages = [SystemMessage(TASK_EXTRACTOR_PROMPT)] + state["messages"]  # type: ignore
-    result = task_extractor.invoke({"messages": messages})["responses"][0]
-    return _Solution(**result.model_dump())
+    result: _Solution = task_extractor.invoke({"messages": messages})["responses"][0]
+    return _Solution(task=result.task, context=result.context, form=result.form)

@@ -33,15 +33,13 @@ Do not write anything else.
 _model = ChatOpenAI(model="gpt-4o-mini")
 
 
-def get_tests(empty_solution: Solution) -> Solution:
-    task_str = f"Task: {empty_solution.task}\nContext: {empty_solution.context}\nRequirements: {empty_solution.requirements}"
+def get_tests(solution: Solution) -> Solution:
+    task_str = (
+        f"Task: {solution.task}\nContext: {solution.context}\nRequirements: {solution.requirements}"
+    )
     messages = [SystemMessage(content=SOLUTION_REQUIREMENT_PROMPT), HumanMessage(content=task_str)]
     result = _model.invoke(messages)
     tests_str = list(json.loads(str(result.content)))
-    tests = [Test(description=t) for t in tests_str]
-    return Solution(
-        task=empty_solution.task,
-        context=empty_solution.context,
-        requirements=empty_solution.requirements,
-        tests=tests,
-    )
+    tests = [Test(description=t, form=solution.form) for t in tests_str]
+    solution.tests.extend(tests)
+    return solution
