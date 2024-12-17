@@ -1,3 +1,6 @@
+import os
+import shutil
+import uuid
 import unittest
 
 from tool.proposer import Proposer
@@ -7,7 +10,10 @@ from tool.models import Solution, Test
 class Test_Solution_Proposal(unittest.TestCase):
 
     def setUp(self):
-        self.proposer = Proposer(db_dir_path="./data/solutions")
+        self.test_db_path = os.path.join(os.path.dirname(__file__), f"./test_data_{uuid.uuid1()}")
+        if os.path.exists(self.test_db_path):
+            shutil.rmtree(self.test_db_path)
+        self.proposer = Proposer(db_dir_path=self.test_db_path)
 
     def test_solution_proposal(self):
         draft = Solution(
@@ -35,6 +41,10 @@ class Test_Solution_Proposal(unittest.TestCase):
         solution = self.proposer.propose_solution(draft)
         assert isinstance(solution, Solution), "The solution must be a Solution object."
         print(solution.solution)
+
+    def tearDown(self):
+        if os.path.exists(self.test_db_path):
+            shutil.rmtree(self.test_db_path, ignore_errors=True)
 
 
 if __name__ == "__main__":  # pragma: no cover

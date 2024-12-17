@@ -1,1 +1,1 @@
-from .solution import Proposer
+from .proposer import Proposer

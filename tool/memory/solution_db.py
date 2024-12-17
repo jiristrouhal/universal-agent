@@ -5,7 +5,7 @@ import os
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
-from tool.models import Solution as _Solution
+from tool.models import Solution as Solution
 
 
 class SolutionDB:
@@ -17,7 +17,7 @@ class SolutionDB:
             persist_directory=persist_directory,
         )
 
-    def add_solution(self, solution: _Solution) -> _Solution:
+    def add_solution(self, solution: Solution) -> Solution:
         id_ = self._db.add_texts(
             texts=[solution.task_description],
             metadatas=[{"json": solution.model_dump_json(indent=4)}],
@@ -27,11 +27,11 @@ class SolutionDB:
 
     def get_solutions(
         self, task: str, context: str, requirements: list[str], k: int = 3
-    ) -> list[_Solution]:
+    ) -> list[Solution]:
         requirement_str = "\n".join(requirements)
         query = f"Task: {task}\nContext: {context}\nRequirements: {requirement_str}"
         return [
-            _Solution(**json.loads(d.metadata["json"]))
+            Solution(**json.loads(d.metadata["json"]))
             for d in self._db.similarity_search(query, k=k)
         ]
 

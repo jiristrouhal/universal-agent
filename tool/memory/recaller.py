@@ -5,7 +5,7 @@ import json
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, AnyMessage
 from langchain_openai import ChatOpenAI
 
-from tool.models import Solution as _Solution
+from tool.models import Solution as Solution
 from tool.memory.solution_db import get_solution_database as _get_database
 
 
@@ -66,13 +66,13 @@ class Recaller:
         self._db = _get_database(db_dir_path)
         self._model = ChatOpenAI(model=openai_model)
 
-    def recall(self, empty_solution: _Solution) -> _Solution:
+    def recall(self, empty_solution: Solution) -> Solution:
         """Recall the solution from the memory and pick the most relevant. If none of the recalled solutions is relevant, return an empty solution."""
         assert empty_solution.solution == "", "The solution must be empty."
         assert empty_solution.task != "", "The task must be provided."
         assert empty_solution.context != "", "The context must be provided."
         assert len(empty_solution.requirements) > 0, "The requirements must be provided."
-        solutions: list[_Solution] = self._db.get_solutions(
+        solutions: list[Solution] = self._db.get_solutions(
             empty_solution.task, empty_solution.context, empty_solution.requirements, k=3
         )
         directly_usable_solution_index = self._pick_directly_usable_solution(
@@ -95,7 +95,7 @@ class Recaller:
 
     def recalled_or_new(
         self,
-        solution_after_recall: _Solution,
+        solution_after_recall: Solution,
     ) -> Literal["recalled", "new"]:
         """Determine if the further path in the graph should go through the recalled or new solution."""
         if solution_after_recall.solution:
@@ -103,7 +103,7 @@ class Recaller:
         return "new"
 
     def _pick_directly_usable_solution(
-        self, empty_solution: _Solution, solutions: list[_Solution]
+        self, empty_solution: Solution, solutions: list[Solution]
     ) -> int | None:
 
         recalled_solutions_str = "\n"
@@ -123,12 +123,12 @@ class Recaller:
             return int(response)
         return None
 
-    def _recalled_solution_description(self, solution: _Solution) -> str:
+    def _recalled_solution_description(self, solution: Solution) -> str:
         return f"Task: {solution.task}\nContext: {solution.context}\nRequirements: {', '.join(solution.requirements)}"
 
     def _pick_solutions(
-        self, empty_solution: _Solution, solutions: list[_Solution]
-    ) -> list[_Solution]:
+        self, empty_solution: Solution, solutions: list[Solution]
+    ) -> list[Solution]:
         solutions_str = ""
         for i, solution in enumerate(solutions):
             solutions_str += f"Solution {i}:\n{self._recalled_solution_description(solution)}\n"

@@ -16,3 +16,4 @@ data_test
 data
 dummy*
 *.sqlite3
+*.png
