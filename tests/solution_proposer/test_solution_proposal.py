@@ -3,7 +3,7 @@ import shutil
 import uuid
 import unittest
 
-from tool.proposer import Proposer
+from tool.proposer import Compiler
 from tool.models import Solution, Test
 
 
@@ -13,7 +13,7 @@ class Test_Solution_Proposal(unittest.TestCase):
         self.test_db_path = os.path.join(os.path.dirname(__file__), f"./test_data_{uuid.uuid1()}")
         if os.path.exists(self.test_db_path):
             shutil.rmtree(self.test_db_path)
-        self.proposer = Proposer(db_dir_path=self.test_db_path)
+        self.proposer = Compiler(db_dir_path=self.test_db_path)
 
     def test_solution_proposal(self):
         draft = Solution(
@@ -38,7 +38,7 @@ class Test_Solution_Proposal(unittest.TestCase):
             resources={},
         )
 
-        solution = self.proposer.propose_solution(draft)
+        solution = self.proposer.compile(draft)
         assert isinstance(solution, Solution), "The solution must be a Solution object."
         print(solution.solution)
 

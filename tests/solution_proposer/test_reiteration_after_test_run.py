@@ -4,7 +4,7 @@ import unittest
 import uuid
 
 from tool.models import Solution, Test
-from tool.proposer import Proposer
+from tool.proposer import Compiler
 
 
 class Test_Reiteration(unittest.TestCase):
@@ -13,7 +13,7 @@ class Test_Reiteration(unittest.TestCase):
         self.test_db_path = os.path.join(os.path.dirname(__file__), f"./test_data_{uuid.uuid1()}")
         if os.path.exists(self.test_db_path):
             shutil.rmtree(self.test_db_path)
-        self.proposer = Proposer(db_dir_path=self.test_db_path)
+        self.proposer = Compiler(db_dir_path=self.test_db_path)
 
     def test_reiteration_with_failed_test_with_critique_returns_the_updated_solution(self):
         solution = Solution(
@@ -33,7 +33,7 @@ def geometric_mean(lst: list[float]) -> float:
                 ),
             ],
         )
-        new_solution = self.proposer.propose_solution(solution)
+        new_solution = self.proposer.compile(solution)
         print(new_solution.solution)
 
     def tearDown(self):

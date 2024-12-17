@@ -27,13 +27,13 @@ You should respond to me only with the solution. Do not write anything else.
 """
 
 
-class Proposer:
+class Compiler:
 
     def __init__(self, db_dir_path: str, openai_model: str = "gpt-4o-mini") -> None:
         self._db = _get_database(db_dir_path)
         self._model = ChatOpenAI(model=openai_model)
 
-    def propose_solution(self, solution: Solution) -> Solution:
+    def compile(self, solution: Solution) -> Solution:
         """Propose a solution to the task and store it in the solution database."""
         query = (
             f"Context: {solution.context}\n"

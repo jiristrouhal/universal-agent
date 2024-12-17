@@ -57,7 +57,7 @@ class Assistant:
         builder = _StateGraph(Solution)
         builder.add_node("solve", self.solver.graph, input=Solution)
         builder.add_node("validate", self.validator.review, input=Solution)
-        builder.add_node("propose_again", self.solver._proposer.propose_solution, input=Solution)
+        builder.add_node("propose_again", self.solver.proposer.graph, input=Solution)
         builder.add_edge(START, "solve")
         builder.add_edge("solve", "validate")
         builder.add_conditional_edges(

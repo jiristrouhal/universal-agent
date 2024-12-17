@@ -1,1 +1,1 @@
-from .proposer import Proposer
+from .proposer import Compiler
