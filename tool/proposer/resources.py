@@ -138,25 +138,25 @@ class ResourceManager:
                 result = self._model.invoke(messages).content
             requested_resources[request] = str(result)
 
-            form_query = f"Query: {request}"
-            form_messages = [SystemMessage(_RESOURCE_FORM_PROMPT), HumanMessage(form_query)]
-            form: ResourceForm = (
-                "code" if "code" in self._model.invoke(form_messages).content else "text"
-            )
+            form = self._get_resource_form(request)
             self._resource_db.add(
                 _Resource(form=form, context=context, request=request, content=result)
             )
 
     def memory_relevance(self, task: str, context: str, request: str, memory: str) -> str:
+        query = f"Task: {task}\nContext: {context}\nRequest: {request}\nMemory: {memory}"
         answer = self._model.invoke(
             [
                 SystemMessage(content=_ASSESS_RECALLED_RESOURCES_PROMPT),
-                HumanMessage(
-                    content=f"Task: {task}\nContext: {context}\nRequest: {request}\nMemory: {memory}"
-                ),
+                HumanMessage(content=query),
             ]
         ).content
         return str(answer)
+
+    def _get_resource_form(self, request: str) -> ResourceForm:
+        form_query = f"Query: {request}"
+        form_messages = [SystemMessage(_RESOURCE_FORM_PROMPT), HumanMessage(form_query)]
+        return "code" if "code" in self._model.invoke(form_messages).content else "text"
 
     def _recall_resources_from_memory(
         self,
@@ -165,12 +165,7 @@ class ResourceManager:
         requested_resources: dict[str, str],
     ) -> None:
         for request in requested_resources:
-            # Get the form of solution - text or code
-            form_query = f"Query: {request}"
-            form_messages = [SystemMessage(_RESOURCE_FORM_PROMPT), HumanMessage(form_query)]
-            form: ResourceForm = (
-                "code" if "code" in self._model.invoke(form_messages).content else "text"
-            )
+            form = self._get_resource_form((request))
             results = self._resource_db.get(form=form, context=context, request=request)
             for result in results:
                 if "True" in self.memory_relevance(task, context, request, result.content):
