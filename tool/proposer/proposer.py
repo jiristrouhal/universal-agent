@@ -47,6 +47,7 @@ class Compiler:
         solution_content = str(self._model.invoke(messages).content)
         solution.solution = solution_content
         self._db.add_solution(solution)
+        solution.proposal_tries += 1
         return solution
 
     def print_solution(self, solution: _Solution) -> _State:

@@ -12,19 +12,14 @@ from tool.memory.recaller import Recaller
 from tool.proposer.proposer import Compiler
 from tool.proposer.resources import ResourceManager
 from tool.parsers import task_parser
-from tool.proposer.requirements import get_requirements
-from tool.proposer.tests import get_tests
+from tool.requirements.requirements import get_requirements
+from tool.test_writer.tests import get_tests
 from tool.proposer.structure import draft_solution
 from tool.validator import Validator
 
 
 SOLUTIONS_DIR_NAME = "solutions"
 RESOURCES_DIR_NAME = "resources"
-
-
-class IteratedSolution(_Solution):
-    max_tries: pydantic.NonNegativeInt = pydantic.Field(default=1)
-    tries: int = 0
 
 
 class Proposer:
@@ -77,6 +72,8 @@ class Proposer:
 
 class IterativeProposer:
 
+    MAX_TRIES = 2
+
     def __init__(self, memory_path: str) -> None:
         self._memory_path = memory_path
         self._proposer = Proposer(memory_path)
@@ -108,46 +105,38 @@ class IterativeProposer:
         with open(os.path.join(path, name.rstrip(".png") + ".png"), "wb") as f:
             f.write(Image(self._graph.get_graph().draw_mermaid_png()).data)
 
-    def _print_solution(self, solution: _Solution) -> _State:
-        return _State(messages=[AIMessage(content=solution.solution)])
-
-    def _input(self, solution: _Solution) -> IteratedSolution:
-        return IteratedSolution(**solution.model_dump())
-
-    def _output(self, solution: IteratedSolution) -> _Solution:
-        return _Solution(**solution.model_dump())
-
-    def _retry(self, solution: IteratedSolution) -> Literal["retry", "end"]:
-        if self._failed_test(solution):
-            print(
-                f"Attempt {solution.tries}/{solution.max_tries} to propose fully valid solution was unsuccessful. "
-                f"{len([test for test in solution.tests if test.result == 'fail'])} out of {len(solution.tests)} tests failed."
-            )
-            if solution.tries < solution.max_tries:
-                solution.tries += 1
-                print(f"Retry to propose solution - attempt {solution.tries}/{solution.max_tries}.")
-                return "retry"
-        return "end"
-
-    def _failed_test(self, solution: IteratedSolution) -> bool:
-        return any(test.result == "fail" for test in solution.tests)
-
     def _construct_graph(self) -> None:
         builder = _StateGraph(_Solution)
 
         builder.add_node("input", self._input, input=_Solution)
-        builder.add_node("propose", self._proposer.graph, input=IteratedSolution)
-        builder.add_node("validate", self._validator.review, input=IteratedSolution)
-        builder.add_node("output", self._output, input=IteratedSolution)
+        builder.add_node("propose", self._proposer.graph, input=_Solution)
+        builder.add_node("validate", self._validator.review, input=_Solution)
 
         builder.add_edge(START, "input")
         builder.add_edge("input", "validate")
-        builder.add_conditional_edges(
-            "validate", self._retry, {"retry": "propose", "end": "output"}
-        )
+        builder.add_conditional_edges("validate", self._retry, {"retry": "propose", "end": END})
         builder.add_edge("propose", "validate")
-        builder.add_edge("output", END)
         self._graph = builder.compile()
+
+    def _failed_test(self, solution: _Solution) -> bool:
+        return any(test.result == "fail" for test in solution.tests)
+
+    def _input(self, solution: _Solution) -> _Solution:
+        solution.proposal_tries = 0
+        return solution
+
+    def _print_solution(self, solution: _Solution) -> _State:
+        return _State(messages=[AIMessage(content=solution.solution)])
+
+    def _retry(self, solution: _Solution) -> Literal["retry", "end"]:
+        if self._failed_test(solution):
+            print(
+                f"Attempt {solution.proposal_tries}/{self.MAX_TRIES} to propose fully valid solution was unsuccessful. "
+                f"{len([test for test in solution.tests if test.result == 'fail'])} out of {len(solution.tests)} tests failed."
+            )
+            if solution.proposal_tries < self.MAX_TRIES:
+                return "retry"
+        return "end"
 
 
 class Solver:

@@ -20,7 +20,7 @@ class Test_Coding_Task(unittest.TestCase):
     def test_geometric_mean(self):
         query = "Give me a code returning the geometric average of a list of floats for my library of unusual mathematical functions."
         result = self.solver.invoke(query)
-        print(result)
+        print(result.content)
 
     def tearDown(self):
         if os.path.exists(self.memory_path):

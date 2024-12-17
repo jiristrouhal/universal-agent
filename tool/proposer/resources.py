@@ -23,8 +23,9 @@ Existing resources: ...
 I need you to give list me resources, that
 a) are required to design the solution and
 b) are not provided in the 'Existing resources'.
+c) are not based common knowledge or general facts.
 
-Respond in a form of list.
+Respond in a form of list. Omit the resources that are already in the 'Existing resources'.
 For each item, provide description of the source required in the form "Give me <resource description>.
 I expect <form of the result/response>. For example:
 [

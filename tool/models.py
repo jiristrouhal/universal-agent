@@ -1,6 +1,6 @@
 from __future__ import annotations
 from uuid import uuid4
-from typing import Annotated, TypedDict, Literal
+from typing import Annotated, TypedDict, Literal, Any
 from operator import add
 
 import pydantic
@@ -36,6 +36,7 @@ class Solution(pydantic.BaseModel):
     solution: str = ""
     similar_solutions: str = ""
     id: str = str(uuid4())
+    proposal_tries: int = 0
 
     def empty(self) -> bool:
         return not bool(self.solution.strip())

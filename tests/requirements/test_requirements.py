@@ -1,7 +1,7 @@
 import unittest
 
-from tool.proposer.requirements import get_requirements
-from tool.proposer.tests import get_tests
+from tool.requirements.requirements import get_requirements
+from tool.test_writer.tests import get_tests
 from tool.models import Solution
 
 

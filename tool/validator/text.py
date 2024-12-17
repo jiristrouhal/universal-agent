@@ -21,6 +21,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
     solution_structure: list[str]
     tests_to_run: dict[int, _Test]
     run_tests: dict[int, _Test]
+    proposal_tries: int
     solution: str
 
     @staticmethod
@@ -40,6 +41,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
             tests_to_run=tests_to_run,
             run_tests=run_tests,
             solution=solution.solution,
+            proposal_tries=solution.proposal_tries,
         )
 
     @staticmethod
@@ -55,6 +57,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
             solution_structure=solution_with_next_test.solution_structure,
             tests=tests,
             solution=solution_with_next_test.solution,
+            proposal_tries=solution_with_next_test.proposal_tries,
         )
 
 
