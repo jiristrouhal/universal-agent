@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "ai_controller"
 version = "0.1.0"
 readme = "README.md"
-dependencies = ["python-dotenv", "langchain", "langchain-openai", "langgraph", "trustcall", "IPython", "langchain-chroma", "langchain_community", "langchain-google-community"]
+dependencies = ["python-dotenv", "langchain", "langchain-openai", "langgraph", "trustcall", "IPython", "langchain-chroma", "langchain_community", "langchain-google-community",  "duckduckgo-search"]
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -4,25 +4,23 @@ import uuid
 import unittest
 
 from tool.proposer.resources import ResourceManager
-from tool.models import Solution, Resource
+from tool.models import Solution, Resource, EMPTY_RESOURCE
 
 
 class Test_Collecting_Missing_Resources(unittest.TestCase):
 
     def setUp(self):
-        self.test_db_path = os.path.join(
-            os.path.dirname(__file__), f"./test_data_{uuid.uuid1()}/resources"
-        )
+        self.test_db_path = os.path.join(os.path.dirname(__file__), f"./test_data_{uuid.uuid1()}")
         if os.path.exists(self.test_db_path):
             shutil.rmtree(self.test_db_path)
-        self.resource_manager = ResourceManager(self.test_db_path)
+        self.resource_manager = ResourceManager(os.path.join(self.test_db_path, "resources"))
 
     def test_no_available_resources_require_collecting_all_of_resources(self):
         solution = Solution(
             task="Find the speed of light",
             context="Physics",
             resources={
-                "I need to find the speed of light. I expect response in m/s": Solution.EMPTY_RESOURCE
+                "I need to find the speed of light. I expect response in m/s": EMPTY_RESOURCE
             },
         )
         solution = self.resource_manager.get_resources(solution)
@@ -33,7 +31,7 @@ class Test_Collecting_Missing_Resources(unittest.TestCase):
             task="Find the speed of light",
             context="Physics",
             resources={  # Predefined resource is provided
-                "I need to find the speed of light. I expect response in m/s": Solution.EMPTY_RESOURCE
+                "I need to find the speed of light. I expect response in m/s": EMPTY_RESOURCE
             },
         )
         solution = self.resource_manager.get_resources(solution)

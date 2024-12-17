@@ -1,6 +1,6 @@
 from __future__ import annotations
 from uuid import uuid4
-from typing import Annotated, TypedDict, Literal, ClassVar
+from typing import Annotated, TypedDict, Literal
 from operator import add
 
 import pydantic
@@ -10,6 +10,9 @@ from langchain_core.messages import AnyMessage
 ResourceForm = Literal["code", "text"]
 TestForm = Literal["code", "text"]
 TestResult = Literal["pass", "fail", "unknown"]
+
+
+EMPTY_RESOURCE = "Not provided."
 
 
 class State(TypedDict):
@@ -22,8 +25,6 @@ class Solution(pydantic.BaseModel):
     """This class represents a solution to a specific task in a specific context. It is used to store the solution in the database
     with the data necessary for the solution modifications and verification, including tests, source links and the solution structure.
     """
-
-    EMPTY_RESOURCE: ClassVar[str] = "Not provided."
 
     context: str
     task: str

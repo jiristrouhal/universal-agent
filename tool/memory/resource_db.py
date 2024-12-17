@@ -22,6 +22,7 @@ class ResourceDB:
             metadatas=[{"json": resource.model_dump_json(indent=4)}],
         )[0]
         resource.id = id_
+        print(f"Resource added to memory with id: {id_}")
         return resource
 
     def get(self, form: _ResourceForm, context: str, request: str, k: int = 3) -> list[_Resource]:

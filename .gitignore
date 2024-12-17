@@ -12,6 +12,7 @@ build
 .coverage
 ./output
 data_test
+*/test_data/*
 data
 dummy*
 *.sqlite3

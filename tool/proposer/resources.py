@@ -4,8 +4,9 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt.chat_agent_executor import create_react_agent
 from langchain_community.tools.wikipedia.tool import WikipediaQueryRun, WikipediaAPIWrapper
+from langchain_community.tools import DuckDuckGoSearchRun
 
-from tool.models import Solution, Solution, ResourceForm
+from tool.models import Solution, Solution, ResourceForm, EMPTY_RESOURCE, Resource as _Resource
 from tool.memory.resource_db import ResourceDB as _ResourceDB, new_custom_database as _resource_db
 
 
@@ -87,7 +88,10 @@ class ResourceManager:
 
     def __init__(self, db_dir_path: str, openai_model: str = "gpt-4o-mini") -> None:
         self._model = ChatOpenAI(model=openai_model)
-        _external_tools = [WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())]  # type: ignore
+        _external_tools = [  # type: ignore
+            DuckDuckGoSearchRun(),
+            WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()),
+        ]
         self._provider = create_react_agent(self._model, tools=_external_tools)
         self._resource_db = _resource_db(db_dir_path)
 
@@ -100,14 +104,14 @@ class ResourceManager:
         query = (
             f"Task: {task}\n"
             f"Context: {context}\n"
-            f"Solution draft: {solution.solution_structure}"
+            f"Solution draft: {solution.solution_structure}\n"
             f"Existing requests for sources: {list(solution.resources.keys())}"
         )
         messages = [SystemMessage(_IDENTIFY_SOURCES_PROMPT), HumanMessage(query)]
         requests_for_sources: list[str] = list(solution.resources.keys()) + list(
             json.loads(str(self._model.invoke(messages).content))
         )
-        requested_resources = dict.fromkeys(requests_for_sources, Solution.EMPTY_RESOURCE)
+        requested_resources = dict.fromkeys(requests_for_sources, EMPTY_RESOURCE)
         self._recall_resources_from_memory(task, context, requested_resources)
         self._get_new_requested_resources(task, context, requested_resources, use_external)
         solution.resources.update(requested_resources)
@@ -121,7 +125,7 @@ class ResourceManager:
         use_external: bool = True,
     ) -> None:
         for request in requested_resources:
-            if requested_resources[request] != Solution.EMPTY_RESOURCE:
+            if requested_resources[request] != EMPTY_RESOURCE:
                 continue
             full_request = f"Task: {task}\nContext: {context}\nRequest: {request}"
             messages = [
@@ -133,6 +137,15 @@ class ResourceManager:
             else:
                 result = self._model.invoke(messages).content
             requested_resources[request] = str(result)
+
+            form_query = f"Query: {request}"
+            form_messages = [SystemMessage(_RESOURCE_FORM_PROMPT), HumanMessage(form_query)]
+            form: ResourceForm = (
+                "code" if "code" in self._model.invoke(form_messages).content else "text"
+            )
+            self._resource_db.add(
+                _Resource(form=form, context=context, request=request, content=result)
+            )
 
     def memory_relevance(self, task: str, context: str, request: str, memory: str) -> str:
         answer = self._model.invoke(

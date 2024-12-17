@@ -26,6 +26,8 @@ meaning similar to for example:
 - 'assert that ...',
 etc., include them in the requirements.
 
+Also include requirement, that all facts in the solution are based on collected Resources.
+
 Do not write anything else.
 """
 

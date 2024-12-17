@@ -3,10 +3,7 @@ import os
 from IPython.display import Image
 from langgraph.graph import StateGraph as _StateGraph, START, END
 from langgraph.graph.state import CompiledGraph
-from langgraph.prebuilt import create_react_agent
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, BaseMessage
-from langchain_openai import ChatOpenAI
-from langchain.tools import Tool
+from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 
 from tool.solver import Solver
 from tool.models import State as _State, Solution as _Solution
@@ -29,16 +26,6 @@ class Assistant:
         self.validator = Validator()
         self._compile_graph()
 
-    def _compile_graph(self) -> None:
-        builder = _StateGraph(_Solution)
-        builder.add_node("solve", self.solver.graph, input=_Solution)
-        builder.add_node("validate", self.validator.review, input=_Solution)
-
-        builder.add_edge(START, "solve")
-        builder.add_edge("solve", "validate")
-        builder.add_edge("validate", END)
-        self._graph = builder.compile()
-
     def invoke_in_loop(self, task: str = "") -> AIMessage:
         while True:
             if not task.strip():
@@ -47,14 +34,6 @@ class Assistant:
                 result = self.invoke(task).content
                 print(result)
                 task = ""
-
-    def _invoke_and_append_result(
-        self, graph: CompiledGraph, messages: list[BaseMessage], human_message: str
-    ) -> None:
-        messages.append(HumanMessage(content=human_message))
-        response: BaseMessage = graph.invoke({"messages": messages})["messages"][-1]
-        print("Tool:", str(response.content))
-        messages.append(response)
 
     def invoke(self, task: str) -> AIMessage:
         """This method accepts a task, thinks about the solution and returns it.
@@ -76,6 +55,23 @@ class Assistant:
     def print_graph_png(self, path: str, name: str = "solver") -> None:
         with open(os.path.join(path, name.rstrip(".png") + ".png"), "wb") as f:
             f.write(Image(self._graph.get_graph(xray=True).draw_mermaid_png()).data)
+
+    def _compile_graph(self) -> None:
+        builder = _StateGraph(_Solution)
+        builder.add_node("solve", self.solver.graph, input=_Solution)
+        builder.add_node("validate", self.validator.review, input=_Solution)
+        builder.add_edge(START, "solve")
+        builder.add_edge("solve", "validate")
+        builder.add_edge("validate", END)
+        self._graph = builder.compile()
+
+    def _invoke_and_append_result(
+        self, graph: CompiledGraph, messages: list[BaseMessage], human_message: str
+    ) -> None:
+        messages.append(HumanMessage(content=human_message))
+        response: BaseMessage = graph.invoke({"messages": messages})["messages"][-1]
+        print("Tool:", str(response.content))
+        messages.append(response)
 
     def _output_solution(self, solution: _Solution) -> _State:
         return _State(messages=[AIMessage(content=solution.solution)])
