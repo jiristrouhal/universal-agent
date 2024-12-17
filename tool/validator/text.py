@@ -108,13 +108,21 @@ Test description: ...
 Test implementation: ...
 Test result: ...
 
-Please, provide me with a critique of the solution. The critique should contain
-- place in the solution, where the error is, if applicable
-- a single-sentence suggestion, how to fix the error, if applicable.
+Please, provide me with a critique of the solution. If the test failed, provide the following:
+- why the test failed,
+- place in the solution, where the error is,
+- a single-sentence suggestion, how to fix the error.
 
 When providing critique, follow these guidelines:
 1) Focus on match between the test description and the test result.
-2) If all the answers match the test passing, write also "TEST_PASSED", otherwise write "TEST_FAILED".
+2) If all the answers match the test passing, append "TEST_PASSED" to your critique, otherwise append "TEST_FAILED".
+
+Example of your response:
+
+    The test failed because of the year of the site discovery is not based on any of the collected Resources.
+    Please either remove the year from the solution or provide a source for the year of the site discovery.
+    TEST_FAILED.
+
 """
 
 

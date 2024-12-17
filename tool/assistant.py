@@ -63,7 +63,7 @@ class Assistant:
         builder.add_conditional_edges(
             "validate", self._any_fixes, path_map={"errors": "propose_again", "no_errors": END}
         )
-        builder.add_edge("propose_again", "validate")
+        builder.add_edge("propose_again", END)
         self._graph = builder.compile()
 
     def _any_fixes(self, solution: Solution) -> Literal["errors", "no_errors"]:

@@ -11,6 +11,7 @@ dotenv.load_dotenv()
 
 
 class Validator:
+    """This class is responsible for looping over solution tests and them."""
 
     def __init__(self, openai_model: str = "gpt-4o-mini") -> None:
         self._model = ChatOpenAI(model=openai_model)
@@ -20,7 +21,11 @@ class Validator:
         builder = _get_validator_builder()
         self._graph = builder.compile()
 
-    def review(self, solution: Solution) -> None:
+    def review(self, solution: Solution) -> Solution:
         result = self._graph.invoke(solution.model_dump(), {"recursion_limit": 50})
         for key, value in result.items():
             setattr(solution, key, value)
+        failed_count = len([t for t in solution.tests if t.result == "fail"])
+        total_count = len(solution.tests)
+        print(f"Tests failed: {failed_count}/{total_count}")
+        return solution
