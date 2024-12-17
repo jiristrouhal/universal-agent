@@ -18,21 +18,21 @@ I will give you the following information:
 Task: ...
 Context: ...
 Solution draft: ...
-Existing requests for sources ...
+Existing resources: ...
 
-Identify the resources of information that you need to design the solution. Respond in a form of list, for example:
+I need you to give list me resources, that
+a) are required to design the solution and
+b) are not provided in the 'Existing resources'.
+
+Respond in a form of list.
+For each item, provide description of the source required in the form "Give me <resource description>.
+I expect <form of the result/response>. For example:
 [
     "I need to find the definition of the term 'machine learning'. I expect to get it as a plain text.",
     "I need a Pythonic program for calculating the least common divisor. I expect to get it as a Python code snippet."
     ...
 ]
-
-Write only requests, that ARE NOT included in the Existing requests for sources.
-Please, follow these instructions:
-
-1) It is possible, that for very simple solutions) (simple arithmetic operations), there are no resources required.
-2) For each item, provide detailed description of the source required in the form "Give me [resource description]. I expect to get it as [form of the result/response].
-3) Do not provide any additional information. Do not write anything else.
+Do not write anything else.
 """
 
 
@@ -88,6 +88,7 @@ class ResourceManager:
 
     def __init__(self, db_dir_path: str, openai_model: str = "gpt-4o-mini") -> None:
         self._model = ChatOpenAI(model=openai_model)
+        self._form_determining_model = ChatOpenAI(model="gpt-3.5-turbo")
         _external_tools = [  # type: ignore
             DuckDuckGoSearchRun(),
             WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()),
@@ -105,16 +106,27 @@ class ResourceManager:
             f"Task: {task}\n"
             f"Context: {context}\n"
             f"Solution draft: {solution.solution_structure}\n"
-            f"Existing requests for sources: {list(solution.resources.keys())}"
+            f"Existing resources: {str(solution.resources)}"
         )
         messages = [SystemMessage(_IDENTIFY_SOURCES_PROMPT), HumanMessage(query)]
-        requests_for_sources: list[str] = list(solution.resources.keys()) + list(
-            json.loads(str(self._model.invoke(messages).content))
+        new_resource_requests = json.loads(str(self._model.invoke(messages).content))
+        new_resources = dict.fromkeys(new_resource_requests, EMPTY_RESOURCE)
+
+        all_resources = solution.resources.copy()
+        all_resources.update(new_resources)
+
+        resources_to_collect_or_recall = {
+            request: value
+            for request, value in all_resources.items()
+            if value == EMPTY_RESOURCE or not value
+        }
+
+        self._recall_resources_from_memory(task, context, resources_to_collect_or_recall)
+        self._get_new_requested_resources(
+            task, context, resources_to_collect_or_recall, use_external
         )
-        requested_resources = dict.fromkeys(requests_for_sources, EMPTY_RESOURCE)
-        self._recall_resources_from_memory(task, context, requested_resources)
-        self._get_new_requested_resources(task, context, requested_resources, use_external)
-        solution.resources.update(requested_resources)
+
+        solution.resources.update(resources_to_collect_or_recall)
         return solution
 
     def _get_new_requested_resources(
@@ -125,8 +137,6 @@ class ResourceManager:
         use_external: bool = True,
     ) -> None:
         for request in requested_resources:
-            if requested_resources[request] != EMPTY_RESOURCE:
-                continue
             full_request = f"Task: {task}\nContext: {context}\nRequest: {request}"
             messages = [
                 SystemMessage(content=_GET_RESOURCE_PROMPT),
@@ -156,7 +166,11 @@ class ResourceManager:
     def _get_resource_form(self, request: str) -> ResourceForm:
         form_query = f"Query: {request}"
         form_messages = [SystemMessage(_RESOURCE_FORM_PROMPT), HumanMessage(form_query)]
-        return "code" if "code" in self._model.invoke(form_messages).content else "text"
+        return (
+            "code"
+            if "code" in self._form_determining_model.invoke(form_messages).content
+            else "text"
+        )
 
     def _recall_resources_from_memory(
         self,

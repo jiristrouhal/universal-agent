@@ -7,8 +7,7 @@ from langgraph.graph.state import CompiledGraph
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 
 from tool.solver import Solver
-from tool.models import State as _State, Solution as Solution
-from tool.validator import Validator
+from tool.models import State as _State, Solution as _Solution
 from tool.parsers import task_parser
 
 
@@ -24,7 +23,6 @@ requires running and testing code.
 class Assistant:
     def __init__(self, memory_path):
         self.solver = Solver(memory_path)
-        self.validator = Validator()
         self._compile_graph()
 
     def invoke_in_loop(self, task: str = "") -> AIMessage:
@@ -44,8 +42,8 @@ class Assistant:
         print(f"Processing task: {task}")
         builder = _StateGraph(_State)
         builder.add_node("parse_task", task_parser, input=_State)
-        builder.add_node("core", self._graph, input=Solution)
-        builder.add_node("output_solution", self._output_solution, input=Solution)
+        builder.add_node("core", self._graph, input=_Solution)
+        builder.add_node("output_solution", self._output_solution, input=_Solution)
         builder.add_edge(START, "parse_task")
         builder.add_edge("parse_task", "core")
         builder.add_edge("core", "output_solution")
@@ -54,20 +52,11 @@ class Assistant:
         return graph.invoke(_State(messages=[HumanMessage(content=task)]))["messages"][-1]
 
     def _compile_graph(self) -> None:
-        builder = _StateGraph(Solution)
-        builder.add_node("solve", self.solver.graph, input=Solution)
-        builder.add_node("validate", self.validator.review, input=Solution)
-        builder.add_node("propose_again", self.solver.proposer.graph, input=Solution)
-        builder.add_edge(START, "solve")
-        builder.add_edge("solve", "validate")
-        builder.add_conditional_edges(
-            "validate", self._any_fixes, path_map={"errors": "propose_again", "no_errors": END}
-        )
-        builder.add_edge("propose_again", END)
+        builder = _StateGraph(_Solution)
+        builder.add_node("solver", self.solver.graph, input=_Solution)
+        builder.add_edge(START, "solver")
+        builder.add_edge("solver", END)
         self._graph = builder.compile()
-
-    def _any_fixes(self, solution: Solution) -> Literal["errors", "no_errors"]:
-        return "errors" if any(test.result == "fail" for test in solution.tests) else "no_errors"
 
     def _invoke_and_append_result(
         self, graph: CompiledGraph, messages: list[BaseMessage], human_message: str
@@ -81,5 +70,5 @@ class Assistant:
         with open(os.path.join(path, name.rstrip(".png") + ".png"), "wb") as f:
             f.write(Image(self._graph.get_graph(xray=True).draw_mermaid_png()).data)
 
-    def _output_solution(self, solution: Solution) -> _State:
+    def _output_solution(self, solution: _Solution) -> _State:
         return _State(messages=[AIMessage(content=solution.solution)])

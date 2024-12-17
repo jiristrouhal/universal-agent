@@ -7,7 +7,7 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from tool.models import Solution as Solution, Test as _Test
+from tool.models import Solution as _Solution, Test as _Test
 
 
 dotenv.load_dotenv()
@@ -24,7 +24,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
     solution: str
 
     @staticmethod
-    def fromSolution(solution: Solution) -> SolutionWithTestsToRun:
+    def fromSolution(solution: _Solution) -> SolutionWithTestsToRun:
         tests_to_run, run_tests = dict(), dict()
         for t in solution.tests:
             if t.critique_of_last_run:
@@ -43,11 +43,11 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
         )
 
     @staticmethod
-    def toSolution(solution_with_next_test: SolutionWithTestsToRun) -> Solution:
+    def toSolution(solution_with_next_test: SolutionWithTestsToRun) -> _Solution:
         all_tests = solution_with_next_test.tests_to_run.copy()
         all_tests.update(solution_with_next_test.run_tests)
         tests = [all_tests[k] for k in sorted(all_tests.keys())]
-        return Solution(
+        return _Solution(
             task=solution_with_next_test.task,
             requirements=solution_with_next_test.requirements,
             context=solution_with_next_test.context,
@@ -132,7 +132,7 @@ TEXT_TESTER_END = "__text_tester_end__"
 _model = ChatOpenAI(name="gpt-4o-mini")
 
 
-def prepare_solution_with_tests_to_run(solution: Solution) -> SolutionWithTestsToRun:
+def prepare_solution_with_tests_to_run(solution: _Solution) -> SolutionWithTestsToRun:
     return SolutionWithTestsToRun.fromSolution(solution)
 
 
@@ -150,7 +150,7 @@ def any_next_test(
 
 def return_solution_with_updated_tests(
     solution_with_next_test: SolutionWithTestsToRun,
-) -> Solution:
+) -> _Solution:
     return SolutionWithTestsToRun.toSolution(solution_with_next_test)
 
 
@@ -163,10 +163,14 @@ def implement_test(solution_with_next_test: SolutionWithTestsToRun) -> SolutionW
     test_id = list(solution_with_next_test.tests_to_run.keys())[0]
     assert test_id is not None
     test = solution_with_next_test.tests_to_run[test_id]
-    prompt = QUESTION_FORMULATION_PROMPT.format(test_description=test.description)
-    response = _model.invoke([SystemMessage(content=prompt)])
-    solution_with_next_test.tests_to_run[test_id].implementation = str(response.content)
-    return solution_with_next_test
+
+    if test.implementation.strip():
+        return solution_with_next_test
+    else:
+        prompt = QUESTION_FORMULATION_PROMPT.format(test_description=test.description)
+        response = _model.invoke([SystemMessage(content=prompt)])
+        solution_with_next_test.tests_to_run[test_id].implementation = str(response.content)
+        return solution_with_next_test
 
 
 def run_test(solution_with_next_test: SolutionWithTestsToRun) -> SolutionWithTestsToRun:
@@ -187,7 +191,7 @@ def run_test(solution_with_next_test: SolutionWithTestsToRun) -> SolutionWithTes
     return solution_with_next_test
 
 
-def criticize(solution: Solution) -> Solution:
+def criticize(solution: _Solution) -> _Solution:
     for test in solution.tests:
         query = (
             f"Solution: {solution.solution}\nTest description: {test.description}\n"
@@ -205,7 +209,7 @@ def criticize(solution: Solution) -> Solution:
 
 
 def get_text_validator_builder() -> StateGraph:
-    text_validator_builder = StateGraph(Solution)
+    text_validator_builder = StateGraph(_Solution)
     text_validator_builder.add_node(
         "prepareSolution_with_no_test_to_run_next", prepare_solution_with_tests_to_run
     )

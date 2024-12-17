@@ -1,7 +1,7 @@
 import dotenv
 from langgraph.graph import StateGraph, START, END
 
-from tool.proposer.proposer import Solution
+from tool.proposer.proposer import _Solution
 from tool.validator.text import get_text_validator_builder as _get_text_validator_builder
 from tool.validator.code import get_code_validator_builder as _get_code_validator_builder
 
@@ -9,14 +9,14 @@ from tool.validator.code import get_code_validator_builder as _get_code_validato
 dotenv.load_dotenv()
 
 
-def decide_test_form(solution: Solution) -> str:
+def decide_test_form(solution: _Solution) -> str:
     if solution.form == "code":
         return "test_code"
     return "test_text"
 
 
 def get_validator_builder() -> StateGraph:
-    validator_builder = StateGraph(Solution)
+    validator_builder = StateGraph(_Solution)
     validator_builder.add_node("test_text", _get_text_validator_builder().compile())
     validator_builder.add_node("test_code", _get_code_validator_builder().compile())
 
