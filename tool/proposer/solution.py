@@ -12,7 +12,7 @@ Context: ...
 Task: ...
 Tests: ...
 Solution structure: ...
-Resources: ...
+Information resources: ...
 
 Please, follow these guidelines:
 1) The solution must be relevant and testable in the context of the task.
@@ -23,6 +23,7 @@ Please, follow these guidelines:
 6) DO NOT write tests into the solution.
 7) Do not write any additional information or code.
 8) When writing function, provide type hints if applicable.
+9) When the task is a simple question or request, provide a simple answer or solution.
 
 You should respond to me only with the solution. Do not write anything else.
 """
@@ -41,6 +42,7 @@ class Proposer:
             f"Task: {solution.task}\n"
             f"Tests: {solution.tests}\n"
             f"Solution structure: {solution.solution_structure}"
+            f"Information resources: {solution.resources}"
         )
         messages = [SystemMessage(content=_PROPOSE_SOLUTION_PROMPT), HumanMessage(content=query)]
         solution_content = str(self._model.invoke(messages).content)
