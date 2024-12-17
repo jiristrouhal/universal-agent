@@ -21,6 +21,6 @@ class Validator:
         self._graph = builder.compile()
 
     def review(self, solution: _Solution) -> None:
-        result = self._graph.invoke(solution.model_dump())
+        result = self._graph.invoke(solution.model_dump(), {"recursion_limit": 50})
         for key, value in result.items():
             setattr(solution, key, value)
