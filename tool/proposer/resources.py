@@ -73,7 +73,7 @@ Request: This is the request for the specific information or resource I need.
 """
 
 
-_ASSESS_RECALLED_RESOURCES_PROMPT = """
+_ASSESS_RESOURCE_RELEVANCE_PROMPT = """
 You are a helpful assistant that determines if the recalled resource is acceptable.
 
 I will provide to you the following information:
@@ -100,7 +100,7 @@ class ResourceManager:
 
     def __init__(self, db_dir_path: str, openai_model: str = "gpt-4o-mini") -> None:
         self._model = ChatOpenAI(model=openai_model)
-        self._form_determining_model = ChatOpenAI(model="gpt-3.5-turbo")
+        self._form_model = ChatOpenAI(model="gpt-3.5-turbo")
         _external_tools = [  # type: ignore
             DuckDuckGoSearchRun(),
             WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()),
@@ -130,7 +130,6 @@ class ResourceManager:
         new_resources = dict.fromkeys(new_resource_requests, EMPTY_RESOURCE)
         all_resources = solution.resources.copy()
         all_resources.update(new_resources)
-
         resources_to_get = {
             request: value
             for request, value in all_resources.items()
@@ -138,9 +137,15 @@ class ResourceManager:
         }
         self._recall_resources_from_memory(solution.task, solution.context, resources_to_get)
         self._get_new_resources(solution.task, solution.context, resources_to_get, use_external)
-
         solution.resources.update(resources_to_get)
         return solution
+
+    def memory_relevance(self, task: str, context: str, request: str, memory: str) -> str:
+        query = f"Task: {task}\nContext: {context}\nRequest: {request}\nMemory: {memory}"
+        answer = self._model.invoke(
+            [SystemMessage(_ASSESS_RESOURCE_RELEVANCE_PROMPT), HumanMessage(query)]
+        )
+        return str(answer.content)
 
     def _get_new_resources(
         self,
@@ -150,39 +155,29 @@ class ResourceManager:
         use_external: bool = True,
     ) -> None:
         for request in requested_resources:
-            full_request = f"Task: {task}\nContext: {context}\nRequest: {request}"
-            messages = [
-                SystemMessage(content=_GET_RESOURCE_PROMPT),
-                HumanMessage(content=full_request),
-            ]
-            if use_external:
-                result = self._provider.invoke({"messages": messages})["messages"][-1].content
-            else:
-                result = self._model.invoke(messages).content
-            requested_resources[request] = str(result)
-            form = self._get_resource_form(request)
-            self._resource_db.add(
-                _Resource(form=form, context=context, request=request, content=result)
-            )
+            resource = self._get_new_resource(task, context, request, use_external)
+            requested_resources[request] = resource.content
+            self._resource_db.add(resource)
 
-    def memory_relevance(self, task: str, context: str, request: str, memory: str) -> str:
-        query = f"Task: {task}\nContext: {context}\nRequest: {request}\nMemory: {memory}"
-        answer = self._model.invoke(
-            [
-                SystemMessage(content=_ASSESS_RECALLED_RESOURCES_PROMPT),
-                HumanMessage(content=query),
-            ]
-        ).content
-        return str(answer)
+    def _get_new_resource(
+        self, task: str, context: str, request: str, use_external: bool = True
+    ) -> _Resource:
+        messages = [
+            SystemMessage(_GET_RESOURCE_PROMPT),
+            HumanMessage(f"Task: {task}\nContext: {context}\nRequest: {request}"),
+        ]
+        if use_external:
+            result = self._provider.invoke({"messages": messages})["messages"][-1].content
+        else:
+            result = self._model.invoke(messages).content
+        content = str(result)
+        form = self._resource_form(request)
+        return _Resource(form=form, context=context, request=request, content=content)
 
-    def _get_resource_form(self, request: str) -> ResourceForm:
+    def _resource_form(self, request: str) -> ResourceForm:
         form_query = f"Query: {request}"
         form_messages = [SystemMessage(_RESOURCE_FORM_PROMPT), HumanMessage(form_query)]
-        return (
-            "code"
-            if "code" in self._form_determining_model.invoke(form_messages).content
-            else "text"
-        )
+        return "code" if "code" in self._form_model.invoke(form_messages).content else "text"
 
     def _recall_resources_from_memory(
         self,
@@ -191,10 +186,13 @@ class ResourceManager:
         requested_resources: dict[str, str],
     ) -> None:
         for request in requested_resources:
-            form = self._get_resource_form((request))
-            results = self._resource_db.get(form=form, context=context, request=request)
-            for result in results:
-                if "True" in self.memory_relevance(task, context, request, result.content):
-                    print("Recalled resource is acceptable")
-                    requested_resources[request] = result.content
-                    break
+            resource_content = self._pick_relevant_recalled_result(task, context, request)
+            requested_resources[request] = resource_content
+
+    def _pick_relevant_recalled_result(self, task: str, context: str, request: str) -> str:
+        form = self._resource_form(request)
+        results = self._resource_db.get(form, context, request)
+        for result in results:
+            if "True" in self.memory_relevance(task, context, request, result.content):
+                return result
+        return EMPTY_RESOURCE
