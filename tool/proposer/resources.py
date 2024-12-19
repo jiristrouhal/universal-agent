@@ -16,8 +16,8 @@ logger = get_logger()
 
 _IDENTIFY_SOURCES_PROMPT = """
 You are a helpful assistant, that collects for me a knowledge necessary for solving given task.
-The task can be either to write a code, do a research or answer a question. T
-The task can be also very trivial, in which case I want you to omit the collection of resources.
+The task can be either to write a code, do a research or answer a question.
+The task can be also trivial, in which case I want you to omit the collection of resources.
 
 I will give you the following information:
 
@@ -26,13 +26,16 @@ Context: ...
 Solution structure: ...
 Existing resources: ...
 
-You will write for me a list of new requests for resources, that are not among the Existing resources.
+You will then write for me a list of new requests for resources, that are not among the Existing resources.
 It is possible that all requests are already written in the Existing resources.
-In such case, you dont need to write anything.
+In such case, there are no resources needed.
 
-When you think there are no more resources needed, just return an empty list.
+It is possible the task requires trivial arithmetics or programming.
+In such case, there are no resources needed.
+
 Collect as low amount of resources as possible. Do not collect any information, that does not
 directly contribute to solving the task.
+When you think there are no more resources needed, just return an empty list.
 
 Otherwise, for each item, provide description of the source required in the form "Give me <resource description>.
 I expect <form of the result/response>. For example:
