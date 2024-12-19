@@ -3,7 +3,11 @@ import json
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
+from tool.logs import get_logger
 from tool.models import Solution, Test
+
+
+logger = get_logger()
 
 
 SOLUTION_REQUIREMENT_PROMPT = """
@@ -42,4 +46,7 @@ def get_tests(solution: Solution) -> Solution:
     tests_str = list(json.loads(str(result.content)))
     tests = [Test(description=t, form=solution.form) for t in tests_str]
     solution.tests.extend(tests)
+    logger.info(
+        f"Updated tests for solution of task '{solution.task}': {[t.description for t in solution.tests]}"
+    )
     return solution
