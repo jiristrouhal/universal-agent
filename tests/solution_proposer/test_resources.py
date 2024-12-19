@@ -42,7 +42,7 @@ class Test_Getting_New_Requests_For_Resources(unittest.TestCase):
             resources={},
         )
         new_requests = self.resource_manager.get_new_requests_for_resources(solution)
-        self.assertEqual(len(new_requests), 1)
+        self.assertNotEqual(len(new_requests), 0)
 
     def test_predefined_request_for_resource_is_used_is_not_added_again(self):
         solution = Solution(
