@@ -101,6 +101,15 @@ class Test_Collecting_Missing_Resources(unittest.TestCase):
         self.assertGreater(len(solution.resources), 0)  # At least one resource is added
         print(solution.resources)
 
+    def test_multitask_resources_are_added_and_found(self):
+        solution = Solution(
+            task="Find me the speed of light and the largest city on Moravia",
+            context="Czech physicist prepares for a conference.",
+            resources={},
+        )
+        solution = self.resource_manager.get_resources(solution)
+        print(solution.resources)
+
     def test_assessing_memory_relevance(self) -> None:
         result = self.resource_manager.memory_relevance(
             task="Find the speed of light",
