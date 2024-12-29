@@ -21,14 +21,11 @@ Previous solution: ...
 
 Please, follow these guidelines:
 - The solution must be relevant and testable in the context of the task.
-- Use only the provided Resources for building the solution. Do not make any assumptions or ad-hoc information retrievals.
+- Use the provided Resources for building the solution. Do not make any assumptions or ad-hoc information retrievals.
 - All points from the Solution structure must be addressed in the solution.
-- The solution must pass all the Tests.
+- The solution must pass all the Tests. Address all the critique from the last run of every test, that failed.
 - Write only the solution. DO NOT write tests into the solution. Do not write anything else.
-- Read critique from the last run of every test, that failed. Make sure to address the critique in the solution.
 {form_specific_guidelines}
-
-You should respond to me only with the solution. Do not write anything else.
 """
 
 

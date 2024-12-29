@@ -9,6 +9,8 @@ from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 from tool.solver import Solver
 from tool.models import State as _State, Solution as _Solution
 from tool.parsers import task_parser
+from tool.memory.resource_db import ResourceDB as _ResourceDB
+from tool.memory.solution_db import SolutionDB as _SolutionDB
 
 
 CHAT_MODEL = "gpt-4o-mini"
@@ -24,6 +26,14 @@ class Assistant:
     def __init__(self, memory_path):
         self.solver = Solver(memory_path)
         self._compile_graph()
+
+    @property
+    def resource_db(self) -> _ResourceDB:
+        return self.solver.resource_db
+
+    @property
+    def solution_db(self) -> _SolutionDB:
+        return self.solver.solution_db
 
     def invoke_in_loop(self, task: str = "") -> AIMessage:
         while True:

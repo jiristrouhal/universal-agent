@@ -1,7 +1,6 @@
 import os
 from typing import Literal
 
-import pydantic
 from langgraph.graph import StateGraph as _StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph as _CompiledStateGraph
 from langchain_core.messages import AIMessage, HumanMessage
@@ -16,6 +15,8 @@ from tool.requirements.requirements import get_requirements
 from tool.test_writer.tests import get_tests
 from tool.proposer.structure import draft_solution
 from tool.validator import Validator
+from tool.memory.resource_db import ResourceDB as _ResourceDB
+from tool.memory.solution_db import SolutionDB as _SolutionDB
 
 
 SOLUTIONS_DIR_NAME = "solutions"
@@ -35,6 +36,10 @@ class Proposer:
     def graph(self) -> _CompiledStateGraph:
         """Get the solver's compiled graph."""
         return self._graph
+
+    @property
+    def resource_db(self) -> _ResourceDB:
+        return self._resource_manager.db
 
     def invoke(self, task: str) -> AIMessage:
         """Build an ad-hoc graph to solve a task."""
@@ -157,6 +162,14 @@ class Solver:
     def graph(self) -> _CompiledStateGraph:
         """Get the solver's compiled graph."""
         return self._graph
+
+    @property
+    def resource_db(self) -> _ResourceDB:
+        return self._proposer.resource_db
+
+    @property
+    def solution_db(self) -> _SolutionDB:
+        return self._recaller.solution_db
 
     def invoke(self, task: str) -> AIMessage:
         """Build an ad-hoc graph to solve a task."""

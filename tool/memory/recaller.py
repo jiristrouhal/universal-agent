@@ -6,7 +6,10 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, AnyM
 from langchain_openai import ChatOpenAI
 
 from tool.models import Solution as _Solution
-from tool.memory.solution_db import get_solution_database as _get_database
+from tool.memory.solution_db import (
+    get_solution_database as _get_database,
+    SolutionDB as _SolutionDB,
+)
 
 
 SOLUTION_RECALL_PROMPT = """
@@ -65,6 +68,10 @@ class Recaller:
     def __init__(self, db_dir_path: str, openai_model: str = "gpt-4o-mini") -> None:
         self._db = _get_database(db_dir_path)
         self._model = ChatOpenAI(model=openai_model)
+
+    @property
+    def solution_db(self) -> _SolutionDB:
+        return self._db
 
     def recall(self, empty_solution: _Solution) -> _Solution:
         """Recall the solution from the memory and pick the most relevant. If none of the recalled solutions is relevant, return an empty solution."""
