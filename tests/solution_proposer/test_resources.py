@@ -170,7 +170,6 @@ class Test_Collecting_Missing_Resources(unittest.TestCase):
         self.assertEqual(len(result["resources"]), 1)
         print(result["resources"])
 
-    # @unittest.skip("The resource request extraction has to be moved to the task parser")
     def test_task_directly_asking_for_resource_produces_single_resource_request(self):
         task = (
             "I need to find various information on physics, cooking and geography."
@@ -184,6 +183,12 @@ class Test_Collecting_Missing_Resources(unittest.TestCase):
             "\nand the best recipe for a chocolate cake."
         )
         solution = Solution(task=task, context="Miscellaneous", resources={})
+        solution = self.resource_manager.invoke(solution)
+        print(solution["resources"])
+
+    def test_text_task(self):
+        task = "Write about the discovery of Amatérská jeskyně in Czech Republic and the specific people who participated in the discovery"
+        solution = Solution(task=task, context="History", resources={})
         solution = self.resource_manager.invoke(solution)
         print(solution["resources"])
 

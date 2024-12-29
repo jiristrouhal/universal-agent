@@ -26,54 +26,6 @@ class ResourceInfo(TypedDict):
     request: str
 
 
-_EXTRACT_EXPLICIT_REQUESTS = """
-You are and attentive text reader, that finds for me an explicit requests for some information or data resource in the task.
-The task can be either to write a code, do a research or answer a question.
-
-I will give you the following information:
-
-Task: ...
-Already requested resources: ...
-
-You will then write for me a list of new requests for resources, that are not among the Already requested resources.
-It is possible that all requests are already written in the Already requested resources.
-In such case, there are no resources needed.
-
-It is possible there is no explicit request for resources in the task.
-In such case, there are no resources needed.
-
-Think step by step about the individual parts of the task and try to find the explicit requests for resources.
-
-Otherwise, for each item, provide description of the source required in the form "Give me <resource description>.
-I expect <form of the result/response>. For example:
-[
-    "I need to find the definition of the term 'machine learning'. I expect to get it as a plain text.",
-    "I need a Pythonic program for calculating the least common divisor. I expect to get it as a Python code snippet."
-    ...
-]
-Do not write anything else except the list.
-
-Example:
-    Task: I need to find the speed of light, the largest city in Moravia and the capital of France.
-    Already requested resources: ['Give me the speed of light. I expect to get it as a number with units.']
-
-    Correct response containing specific requests matching the task would be:
-        [
-            "Give me the largest city in Moravia. I expect to get it as a plain text.",
-            "Give me the capital of France. I expect to get it as a plain text."
-        ]
-    An example of an incorrect response is shown below. The response is too general and does not in fact extract the individual requests:
-        [Give me the specific pieces of information I need. I expect to get it as a detailed list of information."]
-    Another incorrect example:
-        [Give me the information about the subject of interest. I expect to get it as a detailed list of pieces of information.]
-    Another incorrect response. The response is still to general and does not extract the individual requests:
-        [
-            Give me information about Moravia. I expect to get it as a detailed list of information.
-            Give me the information about cooking. I expect to get it as a detailed list of information.
-        ]
-"""
-
-
 _IDENTIFY_SOURCES_PROMPT = """
 You are a helpful assistant, that collects for me a knowledge necessary for solving given task.
 The task can be either to write a code, do a research or answer a question.
@@ -183,10 +135,11 @@ class ResourceManager:
     def __init__(self, db_dir_path: str, openai_model: str = "gpt-4o-mini") -> None:
         self._model = ChatOpenAI(model=openai_model)
         self._form_model = ChatOpenAI(model="gpt-3.5-turbo")
-        _external_tools = [  # type: ignore
-            DuckDuckGoSearchRun(),
-            WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()),
+        _wikis = [
+            WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper(lang=lang))
+            for lang in ["en", "de", "fr", "es", "it", "cs", "sk", "pl", "ru", "uk", "ja", "zh"]
         ]
+        _external_tools = [DuckDuckGoSearchRun(), *_wikis]  # type: ignore
         self._provider = create_react_agent(self._model, tools=_external_tools)
         self._resource_db = _resource_db(db_dir_path)
         self._construct_graph()
@@ -206,15 +159,6 @@ class ResourceManager:
     def print_graph_png(self, path: str, name: str = "resource_manager") -> None:
         with open(os.path.join(path, name.rstrip(".png") + ".png"), "wb") as f:
             f.write(Image(self._graph.get_graph().draw_mermaid_png()).data)
-
-    def extract_explicit_requests(self, solution: _Solution) -> _Solution:
-        assert isinstance(solution, _Solution), f"Expected Solution, got {type(solution)}"
-        requests = solution.resources.keys()
-        query = f"Task: {solution.task}" + "\n" + f"Already requested resources: {requests})"
-        messages = [SystemMessage(_EXTRACT_EXPLICIT_REQUESTS), HumanMessage(query)]
-        new_requests = json.loads(str(self._model.invoke(messages).content))
-        solution.resources.update({request: EMPTY_RESOURCE for request in new_requests})
-        return solution
 
     def get_new_requests_for_resources(self, solution: _Solution) -> list[str]:
         assert isinstance(solution, _Solution), f"Expected Solution, got {type(solution)}"
@@ -245,12 +189,10 @@ class ResourceManager:
 
     def _construct_graph(self) -> None:
         bld = _StateGraph(_Solution)
-        bld.add_node("explicit_requests", self.extract_explicit_requests, input=_Solution)
         bld.add_node("add_requests", self._add_requests, input=_Solution)
         bld.add_node(self.SINGLE_RESOURCE_NODE, self._get_single_resource, input=ResourceInfo)
 
-        bld.add_edge(START, "explicit_requests")
-        bld.add_edge("explicit_requests", "add_requests")
+        bld.add_edge(START, "add_requests")
         bld.add_conditional_edges(
             "add_requests", self._get_resources, [self.SINGLE_RESOURCE_NODE, END]
         )
@@ -281,7 +223,8 @@ class ResourceManager:
     def _get_single_new_resource(self, request: str) -> dict:
         query = f"Request: {request}\nForm: {self._resource_form(request)}"
         messages = [SystemMessage(_GET_RESOURCE_PROMPT), HumanMessage(query)]
-        return {"resources": {request: self._model.invoke(messages).content}}
+        response = self._provider.invoke({"messages": messages})["messages"][-1].content
+        return {"resources": {request: response}}
 
     def _resource_form(self, request: str) -> ResourceForm:
         form_query = f"Query: {request}"
