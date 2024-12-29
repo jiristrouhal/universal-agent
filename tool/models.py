@@ -21,6 +21,12 @@ class State(TypedDict):
     messages: Annotated[list[AnyMessage], add]
 
 
+def dict_reducer(current: dict, new: dict[str, str]) -> dict[str, str]:
+    d = current.copy()
+    d.update(new)
+    return d
+
+
 class Solution(pydantic.BaseModel):
     """This class represents a solution to a specific task in a specific context. It is used to store the solution in the database
     with the data necessary for the solution modifications and verification, including tests, source links and the solution structure.
@@ -29,8 +35,8 @@ class Solution(pydantic.BaseModel):
     context: str
     task: str
     requirements: list[str] = pydantic.Field(default_factory=list)
-    solution_structure: list[str] = pydantic.Field(default_factory=list)
-    resources: dict[str, str] = pydantic.Field(default_factory=dict)
+    structure: list[str] = pydantic.Field(default_factory=list)
+    resources: Annotated[dict[str, str], dict_reducer] = pydantic.Field(default_factory=dict)
     tests: list[Test] = pydantic.Field(default_factory=list)
     form: Literal["text", "code"] = "text"
     solution: str = ""
@@ -62,10 +68,11 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
     context: str
     requirements: list[str]
     resources: dict[str, str]
-    solution_structure: list[str]
+    structure: list[str]
     tests_to_run: dict[int, Test]
     run_tests: dict[int, Test]
     form: ResourceForm = "text"
+    proposal_tries: int
     solution: str
 
     @staticmethod
@@ -81,11 +88,12 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
             context=solution.context,
             resources=solution.resources,
             requirements=solution.requirements,
-            solution_structure=solution.solution_structure,
+            structure=solution.structure,
             tests_to_run=tests_to_run,
             run_tests=run_tests,
             form=solution.form,
             solution=solution.solution,
+            proposal_tries=solution.proposal_tries,
         )
 
     @staticmethod
@@ -98,10 +106,11 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
             requirements=solution_with_next_test.requirements,
             context=solution_with_next_test.context,
             resources=solution_with_next_test.resources,
-            solution_structure=solution_with_next_test.solution_structure,
+            structure=solution_with_next_test.structure,
             tests=tests,
             form=solution_with_next_test.form,
             solution=solution_with_next_test.solution,
+            proposal_tries=solution_with_next_test.proposal_tries,
         )
 
 

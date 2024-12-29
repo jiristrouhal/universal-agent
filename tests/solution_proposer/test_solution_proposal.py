@@ -28,7 +28,7 @@ class Test_Solution_Proposal(unittest.TestCase):
                 Test(description="assert geometric_average([]) == 0.0"),
             ],
             requirements=["The function must return zero if the list is empty."],
-            solution_structure=[
+            structure=[
                 "Check if the list does not contain negative numbers.",
                 "Check if the list is empty and return 0 if it does",
                 "Calculate the product of the list elements",

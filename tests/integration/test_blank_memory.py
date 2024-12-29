@@ -20,7 +20,6 @@ class Test_Task_Solving_And_Validation(unittest.TestCase):
     def test_geometric_mean(self):
         query = "Give me a code returning the geometric average of a list of floats for my library of unusual mathematical functions."
         result = self.assistant.invoke(query)
-        # self.assertIn("def ", result.content)
         print(result)
 
     def tearDown(self):

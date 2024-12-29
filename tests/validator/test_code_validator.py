@@ -14,7 +14,7 @@ class Test_Code_Validator(unittest.TestCase):
             context="",
             task="",
             requirements=[],
-            solution_structure=[],
+            structure=[],
             resources={},
             solution="""
         def calculate_gravity_acceleration(height: float, planet_mass: float) -> float:

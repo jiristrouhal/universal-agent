@@ -11,7 +11,7 @@ class Test_Text_Validator(unittest.TestCase):
         context="",
         task="",
         requirements=[],
-        solution_structure=[],
+        structure=[],
         resources={},
         solution="The highest point of the Czech Republic is the peak of Snezka, which is 1602 meters above sea level.",
         tests=[

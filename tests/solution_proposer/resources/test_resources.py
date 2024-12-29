@@ -20,7 +20,7 @@ class Test_Simple_Tasks(unittest.TestCase):
         text_task = Solution(
             task="Tell me the average temperature in Mosambique in June in degrees Celsius.",
             context="I am planning a trip to Mosambique in June and I want to know what temperature to expect.",
-            solution_structure=[
+            structure=[
                 "Check the average temperature in Mosambique in last June.",
                 "Check the average temperature in Mosambique in June in the last 10 years.",
             ],
@@ -42,7 +42,7 @@ class Test_Simple_Tasks(unittest.TestCase):
         code_task = Solution(
             task="Return give me a function that calculates gravity acceleration above Jupiter.",
             context="I am working on a project that requires me to calculate gravity acceleration above Jupiter.",
-            solution_structure=[
+            structure=[
                 "Check the height above Jupiter is not negative.",
                 "State the constants.",
                 "Calculate and return the gravity acceleration above Jupiter using the general formula for gravity acceleration.",

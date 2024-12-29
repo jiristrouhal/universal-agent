@@ -15,6 +15,9 @@ class Test_Getting_New_Requests_For_Resources(unittest.TestCase):
             shutil.rmtree(self.test_db_path)
         self.resource_manager = ResourceManager(os.path.join(self.test_db_path, "resources"))
 
+    def test_print_graph(self) -> None:
+        self.resource_manager.print_graph_png(os.path.dirname(__file__))
+
     def test_trivial_task_does_not_create_any_request_for_resources(self):
         solution = Solution(task="Tell me what is 3 plus 2", context="Math", resources={})
         new_requests = self.resource_manager.get_new_requests_for_resources(solution)
@@ -69,6 +72,34 @@ class Test_Getting_New_Requests_For_Resources(unittest.TestCase):
             shutil.rmtree(self.test_db_path, ignore_errors=True)
 
 
+class Test_Resource_Request_Extraction(unittest.TestCase):
+
+    def setUp(self):
+        self.test_db_path = os.path.join(os.path.dirname(__file__), f"./test_data_{uuid.uuid1()}")
+        if os.path.exists(self.test_db_path):
+            shutil.rmtree(self.test_db_path)
+        self.resource_manager = ResourceManager(os.path.join(self.test_db_path, "resources"))
+
+    def test_trivial_task_does_not_create_any_request_for_resources(self):
+        task = (
+            "I need to find various information on physics, cooking and geography."
+            "It includes the following:"
+            "\nI need the speed of light,"
+            "\nthe value of the Planck constant,"
+            "\nthe Avogadro number,"
+            "\nnumber of moons of Jupiter,"
+            "\nthe largest city in Moravia"
+            "\nthe latest news about the US elections, "
+            "\nand the best recipe for a chocolate cake."
+        )
+
+        solution = Solution(task=task, context="Miscellaneous", resources={})
+        solution = self.resource_manager.extract_explicit_requests(solution)
+
+        for key, val in solution.resources.items():
+            print(f"{key}: {val}")
+
+
 class Test_Collecting_Missing_Resources(unittest.TestCase):
 
     def setUp(self):
@@ -85,11 +116,11 @@ class Test_Collecting_Missing_Resources(unittest.TestCase):
                 "I need to find the speed of light. I expect response in m/s": EMPTY_RESOURCE
             },
         )
-        solution = self.resource_manager.get_resources(solution)
+        solution = self.resource_manager.invoke(solution)
         self.assertEqual(
-            len(solution.resources), 1
+            len(solution["resources"]), 1
         )  # No new resources are added except the predefined one
-        print(solution.resources)
+        print(solution["resources"])
 
     def test_not_predefined_resources_are_added_and_found(self):
         solution = Solution(
@@ -97,18 +128,19 @@ class Test_Collecting_Missing_Resources(unittest.TestCase):
             context="Physics",
             resources={},
         )
-        solution = self.resource_manager.get_resources(solution)
-        self.assertGreater(len(solution.resources), 0)  # At least one resource is added
-        print(solution.resources)
+        solution = self.resource_manager.invoke(solution)
+        self.assertEqual(len(solution["resources"]), 1)
+        print(solution["resources"])
 
     def test_multitask_resources_are_added_and_found(self):
         solution = Solution(
-            task="Find me the speed of light and the largest city on Moravia",
-            context="Czech physicist prepares for a conference.",
+            task="Find the speed of light and the name of the largest city on Moravia",
+            context="Physics",
             resources={},
         )
-        solution = self.resource_manager.get_resources(solution)
-        print(solution.resources)
+        result = self.resource_manager.invoke(solution)
+        self.assertEqual(len(result["resources"]), 2)
+        print(result["resources"])
 
     def test_assessing_memory_relevance(self) -> None:
         result = self.resource_manager.memory_relevance(
@@ -130,12 +162,30 @@ class Test_Collecting_Missing_Resources(unittest.TestCase):
             )
         )
         solution = Solution(
-            task="Find the speed of light",
+            task="Find the speed of light. I expect response in m/s",
             context="Physics",
-            resources={"I need to find the speed of light. I expect response in m/s": "text"},
+            resources={},
         )
-        solution = self.resource_manager.get_resources(solution)
-        print(solution.resources)
+        result = self.resource_manager.invoke(solution)
+        self.assertEqual(len(result["resources"]), 1)
+        print(result["resources"])
+
+    # @unittest.skip("The resource request extraction has to be moved to the task parser")
+    def test_task_directly_asking_for_resource_produces_single_resource_request(self):
+        task = (
+            "I need to find various information on physics, cooking and geography."
+            "It includes the following:"
+            "\nI need the speed of light,"
+            "\nthe value of the Planck constant,"
+            "\nthe Avogadro number,"
+            "\nnumber of moons of Jupiter,"
+            "\nthe largest city in Moravia"
+            "\nthe latest news about the US elections, "
+            "\nand the best recipe for a chocolate cake."
+        )
+        solution = Solution(task=task, context="Miscellaneous", resources={})
+        solution = self.resource_manager.invoke(solution)
+        print(solution["resources"])
 
     def tearDown(self):
         if os.path.exists(self.test_db_path):

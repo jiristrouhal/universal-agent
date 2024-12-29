@@ -18,7 +18,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
     context: str
     requirements: list[str]
     resources: dict[str, str]
-    solution_structure: list[str]
+    structure: list[str]
     tests_to_run: dict[int, _Test]
     run_tests: dict[int, _Test]
     proposal_tries: int
@@ -37,7 +37,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
             context=solution.context,
             resources=solution.resources,
             requirements=solution.requirements,
-            solution_structure=solution.solution_structure,
+            structure=solution.structure,
             tests_to_run=tests_to_run,
             run_tests=run_tests,
             solution=solution.solution,
@@ -54,7 +54,7 @@ class SolutionWithTestsToRun(pydantic.BaseModel):
             requirements=solution_with_next_test.requirements,
             context=solution_with_next_test.context,
             resources=solution_with_next_test.resources,
-            solution_structure=solution_with_next_test.solution_structure,
+            structure=solution_with_next_test.structure,
             tests=tests,
             solution=solution_with_next_test.solution,
             proposal_tries=solution_with_next_test.proposal_tries,

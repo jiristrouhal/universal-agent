@@ -11,7 +11,7 @@ class Test_Validator(unittest.TestCase):
             context="",
             task="",
             requirements=[],
-            solution_structure=[],
+            structure=[],
             resources={},
             solution="The highest point of the Czech Republic is the peak of Snezka, which is 1602 meters above sea level.",
             tests=[
@@ -36,7 +36,7 @@ class Test_Validator(unittest.TestCase):
             context="",
             task="",
             requirements=[],
-            solution_structure=[],
+            structure=[],
             resources={},
             solution="Hugo, Peter, Alice.",
             tests=[
@@ -61,7 +61,7 @@ class Test_Validator(unittest.TestCase):
                 "The function must handle edge cases, such as when the distance from the center of the planet is less than or equal to zero, by raising a ValueError.",
                 "The function must be well-documented with comments explaining the logic and the parameters used.",
             ],
-            "solution_structure": [
+            "structure": [
                 "Part 1: Define the function with parameters for mass and distance",
                 "Part 2: Check if the distance is less than or equal to zero and raise ValueError if true",
                 "Part 3: Define the gravitational constant G",

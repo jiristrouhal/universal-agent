@@ -37,5 +37,5 @@ def draft_solution(solution: Solution) -> Solution:
     )
     messages = [SystemMessage(content=SOLUTION_PROMPT), HumanMessage(content=task_str)]
     result = _model.invoke(messages)
-    solution.solution_structure = list(json.loads(str(result.content)))
+    solution.structure = list(json.loads(str(result.content)))
     return solution

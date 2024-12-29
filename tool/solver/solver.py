@@ -57,7 +57,7 @@ class Proposer:
         builder = _StateGraph(_Solution)
 
         builder.add_node("get_structure", draft_solution, input=_Solution)
-        builder.add_node("get_resources", self._resource_manager.get_resources, input=_Solution)
+        builder.add_node("get_resources", self._resource_manager.graph, input=_Solution)
         builder.add_node("compile_solution", self._compiler.compile, input=_Solution)
 
         builder.add_edge(START, "get_structure")
@@ -72,7 +72,7 @@ class Proposer:
 
 class IterativeProposer:
 
-    MAX_TRIES = 2
+    MAX_ATTEMPTS = 2
 
     def __init__(self, memory_path: str) -> None:
         self._memory_path = memory_path
@@ -122,19 +122,24 @@ class IterativeProposer:
         return any(test.result == "fail" for test in solution.tests)
 
     def _input(self, solution: _Solution) -> _Solution:
-        solution.proposal_tries = 0
+        solution.proposal_tries = 1
         return solution
 
     def _print_solution(self, solution: _Solution) -> _State:
         return _State(messages=[AIMessage(content=solution.solution)])
 
     def _retry(self, solution: _Solution) -> Literal["retry", "end"]:
+        max_attempts = max(self.MAX_ATTEMPTS, 1)
         if self._failed_test(solution):
             print(
-                f"Attempt {solution.proposal_tries}/{self.MAX_TRIES} to propose fully valid solution was unsuccessful. "
+                f"Attempt {solution.proposal_tries}/{max_attempts} to propose fully valid solution was unsuccessful. "
                 f"{len([test for test in solution.tests if test.result == 'fail'])} out of {len(solution.tests)} tests failed."
             )
-            if solution.proposal_tries < self.MAX_TRIES:
+            print("\nFailed tests:")
+            for t in solution.tests:
+                if t.result == "fail":
+                    print(f"{t.description}\nCritique: {t.critique_of_last_run}\n")
+            if solution.proposal_tries < max_attempts:
                 return "retry"
         return "end"
 

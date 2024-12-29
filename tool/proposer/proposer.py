@@ -33,7 +33,9 @@ You should respond to me only with the solution. Do not write anything else.
 
 
 CODE_GUIDELINES = """
-- When writing Python code, add type hints to the function arguments and return types.
+- Add type hints to the function arguments and return value, for example
+    def my_function(arg1: int, arg2: str) -> float:
+       ...
 - First write any helper functions if needed. Then write the main function solving the task.
 - Do not write any tests or examples.
 """
@@ -55,13 +57,13 @@ class Compiler:
         query = (
             f"Context: {solution.context}\n"
             f"Task: {solution.task}\n"
-            f"Solution structure: {solution.solution_structure}"
+            f"Solution structure: {solution.structure}"
             f"Information resources: {solution.resources}"
             f"Tests: {solution.tests}\n"
             f"Previous solution: {solution.solution}"
         )
         form_specific_guidelines = (
-            CODE_GUIDELINES if solution.solution_structure == "code" else TEXT_GUIDELINES
+            CODE_GUIDELINES if solution.structure == "code" else TEXT_GUIDELINES
         )
         messages = [
             SystemMessage(
@@ -71,12 +73,14 @@ class Compiler:
             ),
             HumanMessage(content=query),
         ]
+        solution.proposal_tries += 1
         logger.debug(f"Compiling solution for task: {solution.task}")
         solution_content = str(self._model.invoke(messages).content)
         solution.solution = solution_content
-        logger.debug(f"Compiled solution: {solution_content}")
         self._db.add_solution(solution)
-        solution.proposal_tries += 1
+        logger.debug(
+            f"Compiled solution (attempt no. {solution.proposal_tries}): {solution_content}"
+        )
         return solution
 
     def print_solution(self, solution: _Solution) -> _State:
